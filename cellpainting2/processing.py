@@ -27,30 +27,28 @@ from rdkit import DataStructs
 
 from IPython.core.display import HTML
 
-from . import tools as cpt
-from .config import ACT_PROF_PARAMETERS
-from .config import LIMIT_SIMILARITY_L, LIMIT_CELL_COUNT_L, LIMIT_ACTIVITY_L
+from cellpainting2 import tools as cpt
+cp_config = cpt.load("config")
+
+ACT_PROF_PARAMETERS = cp_config["Parameters"]
+
+LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
+LIMIT_CELL_COUNT_L = cp_config["Cutoffs"]["LimitCellCountL"]
+LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
+
 
 try:
-    # from misc_tools import apl_tools
+    from misc_tools import apl_tools
     AP_TOOLS = True
     print("* Cell Painting v2")
     #: Library version
-    # VERSION = apl_tools.get_commit(__file__)
+    VERSION = apl_tools.get_commit(__file__)
     # I use this to keep track of the library versions I use in my project notebooks
-    # print("{:45s} (commit: {})".format(__name__, VERSION))
+    print("{:45s} (commit: {})".format(__name__, VERSION))
 
 except ImportError:
     AP_TOOLS = False
     print("{:45s} ({})".format(__name__, time.strftime("%y%m%d-%H:%M", time.localtime(op.getmtime(__file__)))))
-
-try:
-    from . import resource_paths as cprp
-except ImportError:
-    from . import resource_paths_templ as cprp
-    print("* Resource paths not found, stub loaded.")
-    print("  Automatic loading of resources will not work,")
-    print("  please have a look at resource_paths_templ.py")
 
 FINAL_PARAMETERS = ['Metadata_Plate', 'Metadata_Well', 'plateColumn', 'plateRow',
                     "Compound_Id", 'Container_Id', "Well_Id", "Producer", "Pure_Flag", "Toxic",
@@ -581,23 +579,23 @@ def load_resource(resource, mode="cpd"):
             # except NameError:
             global SMILES
             print("- loading resource:                        (SMILES)")
-            SMILES = read_smiles_file(cprp.smiles_path,
-                                      props=cprp.smiles_cols)
+            SMILES = read_smiles_file(cp_config["Paths"]["SmilesPath"],
+                                      props=cp_config["Paths"]["SmilesCols"])
             SMILES = SMILES.apply(pd.to_numeric, errors='ignore')
     elif "anno" in res:
         if "ANNOTATIONS" not in glbls:
             global ANNOTATIONS
             print("- loading resource:                        (ANNOTATIONS)")
-            ANNOTATIONS = pd.read_csv(cprp.annotations_path, sep="\t")
+            ANNOTATIONS = pd.read_csv(cp_config["Paths"]["AnnotationsPath"], sep="\t")
             ANNOTATIONS = ANNOTATIONS.apply(pd.to_numeric, errors='ignore')
     elif "sim" in res:
         if "SIM_REFS" not in glbls:
             global SIM_REFS
             print("- loading resource:                        (SIM_REFS)")
             if "ext" in mode.lower():
-                srp = cprp.sim_refs_ext_path
+                srp = cp_config["Paths"]["SimRefsExtPath"]
             else:
-                srp = cprp.sim_refs_path
+                srp = cp_config["Paths"]["SimRefsPath"]
             try:
                 SIM_REFS = pd.read_csv(srp, sep="\t")
             except FileNotFoundError:
@@ -607,37 +605,37 @@ def load_resource(resource, mode="cpd"):
         if "REFERENCES" not in glbls:
             global REFERENCES
             print("- loading resource:                        (REFERENCES)")
-            REFERENCES = pd.read_csv(cprp.references_path, sep="\t")  # .fillna("")
+            REFERENCES = pd.read_csv(cp_config["Paths"]["ReferencesPath"], sep="\t")  # .fillna("")
     elif "cont" in res:
         if "CONTAINER" not in glbls:
             global CONTAINER
             print("- loading resource:                        (CONTAINER)")
-            CONTAINER = pd.read_csv(cprp.container_path, sep="\t")
-            if len(cprp.container_data_cols) > 0:
-                CONTAINER = CONTAINER[cprp.container_cols]
+            CONTAINER = pd.read_csv(cp_config["Paths"]["ContainerPath"], sep="\t")
+            if len(cp_config["Paths"]["ContainerCols"]) > 0:
+                CONTAINER = CONTAINER[cp_config["Paths"]["ContainerCols"]]
             CONTAINER = CONTAINER.apply(pd.to_numeric, errors='ignore')
     elif "container_d" in res:
         if "CONTAINER_DATA" not in glbls:
             global CONTAINER_DATA
             print("- loading resource:                        (CONTAINER)")
-            CONTAINER_DATA = pd.read_csv(cprp.container_data_path, sep="\t")
-            if len(cprp.container_data_cols) > 0:
-                CONTAINER_DATA = CONTAINER_DATA[cprp.container_data_cols]
+            CONTAINER_DATA = pd.read_csv(cp_config["Paths"]["ContainerDataPath"], sep="\t")
+            if len(cp_config["Paths"]["ContainerDataCols"]) > 0:
+                CONTAINER_DATA = CONTAINER_DATA[cp_config["Paths"]["ContainerDataCols"]]
             CONTAINER_DATA = CONTAINER_DATA.apply(pd.to_numeric, errors='ignore')
     elif "batch_d" in res:
         if "BATCH_DATA" not in glbls:
             global BATCH_DATA
             print("- loading resource:                        (BATCH_DATA)")
-            BATCH_DATA = pd.read_csv(cprp.batch_data_path, sep="\t")
-            if len(cprp.batch_data_cols) > 0:
-                BATCH_DATA = BATCH_DATA[cprp.batch_data_cols]
+            BATCH_DATA = pd.read_csv(cp_config["Paths"]["BatchDataPath"], sep="\t")
+            if len(cp_config["Paths"]["BatchDataCols"]) > 0:
+                BATCH_DATA = BATCH_DATA[cp_config["Paths"]["BatchDataCols"]]
             BATCH_DATA = BATCH_DATA.apply(pd.to_numeric, errors='ignore')
     elif "datast" in res:
         if "DATASTORE" not in glbls:
             global DATASTORE
             print("- loading resource:                        (DATASTORE)")
             try:
-                DATASTORE = pd.read_csv(cprp.datastore_path, sep="\t")
+                DATASTORE = pd.read_csv(cp_config["Paths"]["DatastorePath"], sep="\t")
             except FileNotFoundError:
                 print("  * DATASTORE not found, creating new one.")
                 DATASTORE = pd.DataFrame()
@@ -645,7 +643,7 @@ def load_resource(resource, mode="cpd"):
         if "LAYOUTS" not in glbls:
             global LAYOUTS
             print("- loading resource:                        (LAYOUTS)")
-            LAYOUTS = pd.read_csv(cprp.layouts_path, sep="\t")
+            LAYOUTS = pd.read_csv(cp_config["Paths"]["LayoutsPath"], sep="\t")
     else:
         raise FileNotFoundError("# unknown resource: {}".format(resource))
 
@@ -744,11 +742,11 @@ def join_layout_1536(df, plate, quadrant, on="Address_384", sep="\t", how="inner
 
 
 def write_datastore():
-    ds_cols = cprp.datastore_cols.copy()
+    ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
     df = DATASTORE[ds_cols]
     df = df.sort_values("Well_Id")
-    df.to_csv(cprp.datastore_path, index=False, sep="\t")
+    df.to_csv(cp_config["Paths"]["DatastorePath"], index=False, sep="\t")
     print_log(df, "write datastore")
 
 
@@ -761,7 +759,7 @@ def update_datastore(df2, on="Well_Id", mode="cpd", write=False):
         df2["Is_Ref"] = True
     else:
         df2["Is_Ref"] = False
-    ds_cols = cprp.datastore_cols.copy()
+    ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
     df2 = df2[ds_cols]
     df1 = df1.append(df2, ignore_index=True)
@@ -1264,9 +1262,9 @@ def write_sim_refs(mode="cpd"):
     keep = ["Compound_Id", "Well_Id", "Is_Ref", "Ref_Id", "RefCpd_Id",
             "Similarity", "Tanimoto", "Times_Found"]
     if "ext" in mode.lower():
-        sim_fn = cprp.sim_refs_ext_path
+        sim_fn = cp_config["Paths"]["SimRefsExtPath"]
     else:
-        sim_fn = cprp.sim_refs_path
+        sim_fn = cp_config["Paths"]["SimRefsPath"]
     sim_fn_pp = op.splitext(sim_fn)[0] + "_pp.tsv"
     SIM_REFS = SIM_REFS[keep]
     sim_refs = SIM_REFS

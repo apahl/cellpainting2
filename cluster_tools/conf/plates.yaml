@@ -1,4 +1,23 @@
+# Example plate list for cellpainting2
+# On Linux, put in $HOME/.config/cellpainting2/plates.yaml
+# On Windows, put in $HOME/cellpainting2/plates.yaml
+# ----------------------------------------------------------------------------
 Quadrants:
+    S0195:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+    S0198:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+    S0203:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
     SI0009:
         - "1"
         - "2"

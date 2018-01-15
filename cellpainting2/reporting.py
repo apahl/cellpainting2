@@ -25,23 +25,24 @@ import numpy as np
 from PIL import Image, ImageChops
 import matplotlib.pyplot as plt
 
-from . import tools as cpt
-from . import report_templ as cprt
-from . import processing as cpp
+from cellpainting2 import tools as cpt
+from cellpainting2 import report_templ as cprt
+from cellpainting2 import processing as cpp
 
-try:
-    from . import resource_paths as cprp
-except ImportError:
-    from . import resource_paths_templ as cprp
-    print("* Resource paths not found, stub loaded.")
-    print("  Automatic loading of resources will not work,")
-    print("  please have a look at resource_paths_templ.py")
+cp_config = cpt.load("config")
+cp_plates = cpt.load_config("plates")
 
-from .config import (ACT_PROF_PARAMETERS, ACT_CUTOFF_PERC, ACT_CUTOFF_PERC_REF,
-                     LIMIT_ACTIVITY_H, LIMIT_ACTIVITY_L,
-                     LIMIT_CELL_COUNT_H, LIMIT_CELL_COUNT_L,
-                     LIMIT_SIMILARITY_H, LIMIT_SIMILARITY_L,
-                     PARAMETER_HELP)
+ACT_PROF_PARAMETERS = cp_config["Parameters"]
+
+ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
+ACT_CUTOFF_PERC_REF = cp_config["Cutoffs"]["ActCutoffPercRef"]
+LIMIT_ACTIVITY_H = cp_config["Cutoffs"]["LimitActivityH"]
+LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
+LIMIT_CELL_COUNT_H = cp_config["Cutoffs"]["LimitCellCountH"]
+LIMIT_CELL_COUNT_L = cp_config["Cutoffs"]["LimitCellCountL"]
+LIMIT_SIMILARITY_H = cp_config["Cutoffs"]["LimitSimilarityH"]
+LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
+PARAMETER_HELP = cp_config["ParameterHelp"]
 
 # get positions of the compartments in the list of parameters
 x = 0
@@ -60,16 +61,17 @@ Draw.DrawingOptions.atomLabelFontSize = 18
 from IPython.core.display import HTML
 
 try:
-    # from misc_tools import apl_tools
+    from misc_tools import apl_tools
     AP_TOOLS = True
     # Library version
-    # VERSION = apl_tools.get_commit(__file__)
+    VERSION = apl_tools.get_commit(__file__)
     # I use this to keep track of the library versions I use in my project notebooks
-    # print("{:45s} (commit: {})".format(__name__, VERSION))
+    print("{:45s} (commit: {})".format(__name__, VERSION))
 
 except ImportError:
     AP_TOOLS = False
-    # print("{:45s} ({})".format(__name__, time.strftime("%y%m%d-%H:%M", time.localtime(op.getmtime(__file__)))))
+    print("{:45s} ({})".format(__name__, time.strftime(
+        "%y%m%d-%H:%M", time.localtime(op.getmtime(__file__)))))
 
 try:
     # Try to import Avalon so it can be used for generation of 2d coordinates.
@@ -581,8 +583,8 @@ def heat_hv(df, id_prop="Compound_Id", cmap="bwr", invert_y=False):
 
 def show_images(plate_quad, well):
     """For interactive viewing in the notebook."""
-    date = cprp.DATES[plate_quad]
-    src_dir = cprp.src_path.format(date, plate_quad)
+    date = cp_plates["Dates"][plate_quad]
+    src_dir = cp_config["Paths"]["SrcPath"].format(date, plate_quad)
     ctrl_images = load_control_images(src_dir)
     image_dir = op.join(src_dir, "images")
     templ_dict = {}

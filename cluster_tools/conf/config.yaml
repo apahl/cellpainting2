@@ -1,7 +1,6 @@
-# Example configuration for create_reports.py
+# Example configuration for cellpainting2
 # On Linux, put in $HOME/.config/cellpainting2/config.yaml
 # On Windows, put in $HOME/cellpainting2/config.yaml
-
 # ----------------------------------------------------------------------------
 Dirs:
     PlatesDir: /home/pahl/comas/painting/plates

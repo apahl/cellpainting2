@@ -16,10 +16,22 @@ from io import BytesIO as IO
 
 from PIL import Image
 
-from .config import (ACT_CUTOFF_PERC,
-                     LIMIT_ACTIVITY_H, LIMIT_ACTIVITY_L,
-                     LIMIT_CELL_COUNT_H, LIMIT_CELL_COUNT_L,
-                     LIMIT_SIMILARITY_H, LIMIT_SIMILARITY_L)
+from cellpainting2 import tools as cpt
+cp_config = cpt.load("config")
+# cp_plates = cpt.load_config("plates")
+
+ACT_PROF_PARAMETERS = cp_config["Parameters"]
+
+ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
+
+LIMIT_ACTIVITY_H = cp_config["Cutoffs"]["LimitActivityH"]
+LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
+LIMIT_CELL_COUNT_H = cp_config["Cutoffs"]["LimitCellCountH"]
+LIMIT_CELL_COUNT_L = cp_config["Cutoffs"]["LimitCellCountL"]
+LIMIT_SIMILARITY_H = cp_config["Cutoffs"]["LimitSimilarityH"]
+LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
+
+PARAMETER_HELP = cp_config["ParameterHelp"]
 
 
 class PreTemplate(Template):

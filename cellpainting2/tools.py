@@ -44,8 +44,9 @@ def load_config(conf):
         with open(conf_fn, 'r') as ymlfile:
             config = yaml.load(ymlfile)
     except FileNotFoundError:
-        print("Configuration file not found.")
-        print("Have a look at cellpainting.conf for instructions.")
+        print("Configuration file {}.yaml not found.".format(config))
+        print("Have a look at the *.yaml files in the `conf` folder of")
+        print("the `cluster_tools directories` for templates and locations.")
         raise
     return config
 
