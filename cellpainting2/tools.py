@@ -13,6 +13,7 @@ Helper Tools acting on individual data..
 import os
 import os.path as op
 from collections import Counter
+import yaml
 
 import pandas as pd
 import scipy.spatial.distance as dist
@@ -22,7 +23,31 @@ from .config import ACT_PROF_PARAMETERS
 ROWS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
         "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"]
 STRUCT = "/home/pahl/comas/share/export_data_b64.csv.gz"
-KEEP = ['Compound_Id', "Batch_Id", "Producer", "Address", "Conc_uM", "Smiles", "Pure_Flag"]
+KEEP = ['Compound_Id', "Batch_Id", "Producer",
+        "Address", "Conc_uM", "Smiles", "Pure_Flag"]
+
+
+def load_config(conf):
+    """Loads configuration from default location and
+    returns config object.
+    Known configuration files are `config.yaml` and `plates.yaml`.
+    Raises error when the file could not be loaded."""
+    assert conf in ["config", "plates"]
+
+    if "HOME" in os.environ:
+        conf_fn = op.join(os.environ["HOME"], ".config",
+                          "cellpainting2", "{}.yaml".format(conf))
+    elif "HOMEPATH" in os.environ:  # Windows
+        conf_fn = op.join(os.environ["HOMEPATH"],
+                          "cellpainting2", "{}.yaml".format(conf))
+    try:
+        with open(conf_fn, 'r') as ymlfile:
+            config = yaml.load(ymlfile)
+    except FileNotFoundError:
+        print("Configuration file not found.")
+        print("Have a look at cellpainting.conf for instructions.")
+        raise
+    return config
 
 
 def profile_sim(current, reference):
@@ -30,7 +55,8 @@ def profile_sim(current, reference):
     Returns value between 0 .. 1"""
 
     ref_len = len(reference)
-    assert ref_len == len(current), "Activity Profiles must have the same length to be compared."
+    assert ref_len == len(
+        current), "Activity Profiles must have the same length to be compared."
     result = 1 - dist.correlation(current, reference)
     return result
 
@@ -115,7 +141,8 @@ def create_dirs(path):
 
 def check_df(df, fn):
     if df is None:
-        df = pd.read_csv(fn, sep="\t")  # load default file (REFERENCES or COMAS)
+        # load default file (REFERENCES or COMAS)
+        df = pd.read_csv(fn, sep="\t")
     elif isinstance(df, str):
         df = pd.read_csv(df, sep="\t")
     return df
@@ -161,7 +188,8 @@ def split_prof(df, id_prop):
 
 def melt(df, id_prop="Compound_Id"):
     """Taken and adapted from the Holoviews measles heatmap example."""
-    result = pd.melt(df, id_vars=id_prop, var_name="Parameter", value_name="Value")
+    result = pd.melt(df, id_vars=id_prop,
+                     var_name="Parameter", value_name="Value")
     result = result.reset_index().drop("index", axis=1)
     # result = result.sort_values([id_prop, "Parameter"]).reset_index().drop("index", axis=1)
     result = result[["Parameter", id_prop, "Value"]]
