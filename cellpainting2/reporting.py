@@ -627,7 +627,8 @@ def detailed_report(rec, src_dir, ctrl_images):
     parm_table = []
     for idx, x in enumerate(log2_vals, 1):
         parm_table.extend(["<tr><td>", str(idx), "</td>",
-                           "<td>", x[0], "</td>",
+                           # omit the "Median_" head of each parameter
+                           "<td>", x[0][7:], "</td>",
                            '<td align="right">', "{:.2f}".format(x[1]), "</td></tr>\n"])
     templ_dict["Parm_Table"] = "".join(parm_table)
     df_heat = pd.DataFrame([rec])
