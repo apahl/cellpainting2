@@ -140,25 +140,6 @@ def create_dirs(path):
         os.makedirs(path)
 
 
-def check_df(df, fn):
-    if df is None:
-        # load default file (REFERENCES or COMAS)
-        df = pd.read_csv(fn, sep="\t")
-    elif isinstance(df, str):
-        df = pd.read_csv(df, sep="\t")
-    return df
-
-
-def parameters_from_act_profile_by_val(act_prof, val, parameters=ACT_PROF_PARAMETERS):
-    result = []
-    if not isinstance(val, str):
-        val = str(val)
-    for idx, act in enumerate(act_prof):
-        if act == val:
-            result.append(parameters[idx])
-    return result
-
-
 def middle(lst, size):
     """Return the middle fraction of a sorted list, removing outliers."""
     mid_lst = sorted(list(lst))
@@ -168,23 +149,6 @@ def middle(lst, size):
     end = start + num_el
     mid_lst = mid_lst[start:end]
     return mid_lst
-
-
-def prof_to_list(act_prof):
-    return [int(x) for x in act_prof]
-
-
-def split_prof(df, id_prop):
-    """Split the Activity Profile into individual parameters."""
-    props = [id_prop, "Act_Profile"]
-    df_props = df[props]
-    result = []
-    for _, rec in df_props.iterrows():
-        ap = rec.pop("Act_Profile")
-        for i, v in enumerate(ap):
-            rec[ACT_PROF_PARAMETERS[i][7:]] = int(v)
-        result.append(rec)
-    return pd.DataFrame(result)
 
 
 def melt(df, id_prop="Compound_Id"):

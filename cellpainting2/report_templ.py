@@ -112,7 +112,7 @@ table.noborder {
   text-align: left;
 }
 th.noborder {
-  border-collapse: separate
+  border-collapse: separate;
   border-width: thin;
   border-style: solid;
   border-color: white;
@@ -122,7 +122,7 @@ th.noborder {
   padding: 5px;
 }
 td.noborder {
-  border-collapse: separate
+  border-collapse: separate;
   border-width:thin;
   border-style:solid;
   text-align: left;

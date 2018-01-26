@@ -21,6 +21,7 @@ import pickle
 
 import pandas as pd
 import numpy as np
+from dask import dataframe as dd
 
 from rdkit.Chem import AllChem as Chem
 from rdkit import DataStructs
@@ -527,15 +528,6 @@ def print_log(df, component, add_info=""):
     print("* {:22s} ({:5d} | {:4d}){}".format(component, df.shape[0], df.shape[1], add_info))
 
 
-def read_smiles_file(fn, props=['Compound_Id', "Smiles"]):
-    """Read in the file with the Compound_Ids and the Smiles.
-    Return a DataFrame for fast access."""
-    result = pd.read_csv(fn, sep="\t")
-    result = result[props]
-    result = result.apply(pd.to_numeric, errors='ignore')
-    return result
-
-
 def clear_resources():
     try:
         del SMILES
@@ -569,7 +561,7 @@ def clear_resources():
         pass
 
 
-def load_resource(resource, mode="cpd"):
+def load_resource(resource, mode="cpd", limit_cols=True):
     """Available resources: SMILES, ANNOTATIONS, SIM_REFS, REFERENCES,
                             CONTAINER, CONTAINER_DATA, BATCH_DATA, DATASTORE, LAYOUTS"""
     res = resource.lower()
@@ -579,15 +571,17 @@ def load_resource(resource, mode="cpd"):
             # except NameError:
             global SMILES
             print("- loading resource:                        (SMILES)")
-            SMILES = read_smiles_file(cp_config["Paths"]["SmilesPath"],
-                                      props=cp_config["Paths"]["SmilesCols"])
-            SMILES = SMILES.apply(pd.to_numeric, errors='ignore')
+            SMILES = dd.read_csv(mf_config["Paths"]["SmilesPath"], sep="\t")
+            if isinstance(limit_cols, list):
+                SMILES = SMILES[limit_cols]
+            elif limit_cols is True and len(cp_config["Paths"]["SmilesCols"]) > 0:
+                SMILES = SMILES[cp_config["Paths"]["SmilesCols"]]
+            # SMILES = SMILES.apply(pd.to_numeric, errors='ignore', axis=1)
     elif "anno" in res:
         if "ANNOTATIONS" not in glbls:
             global ANNOTATIONS
             print("- loading resource:                        (ANNOTATIONS)")
-            ANNOTATIONS = pd.read_csv(cp_config["Paths"]["AnnotationsPath"], sep="\t")
-            ANNOTATIONS = ANNOTATIONS.apply(pd.to_numeric, errors='ignore')
+            ANNOTATIONS = dd.read_csv(cp_config["Paths"]["AnnotationsPath"], sep="\t")
     elif "sim" in res:
         if "SIM_REFS" not in glbls:
             global SIM_REFS
@@ -597,7 +591,7 @@ def load_resource(resource, mode="cpd"):
             else:
                 srp = cp_config["Paths"]["SimRefsPath"]
             try:
-                SIM_REFS = pd.read_csv(srp, sep="\t")
+                SIM_REFS = dd.read_csv(srp, sep="\t")
             except FileNotFoundError:
                 print("  * SIM_REFS not found, creating new one.")
                 SIM_REFS = pd.DataFrame()
@@ -605,37 +599,40 @@ def load_resource(resource, mode="cpd"):
         if "REFERENCES" not in glbls:
             global REFERENCES
             print("- loading resource:                        (REFERENCES)")
-            REFERENCES = pd.read_csv(cp_config["Paths"]["ReferencesPath"], sep="\t")  # .fillna("")
+            REFERENCES = dd.read_csv(cp_config["Paths"]["ReferencesPath"], sep="\t")
     elif "cont" in res:
         if "CONTAINER" not in glbls:
             global CONTAINER
             print("- loading resource:                        (CONTAINER)")
-            CONTAINER = pd.read_csv(cp_config["Paths"]["ContainerPath"], sep="\t")
-            if len(cp_config["Paths"]["ContainerCols"]) > 0:
+            CONTAINER = dd.read_csv(cp_config["Paths"]["ContainerPath"], sep="\t")
+            if isinstance(limit_cols, list):
+                CONTAINER = CONTAINER[limit_cols]
+            elif limit_cols is True and len(cp_config["Paths"]["ContainerCols"]) > 0:
                 CONTAINER = CONTAINER[cp_config["Paths"]["ContainerCols"]]
-            CONTAINER = CONTAINER.apply(pd.to_numeric, errors='ignore')
     elif "container_d" in res:
         if "CONTAINER_DATA" not in glbls:
             global CONTAINER_DATA
             print("- loading resource:                        (CONTAINER)")
-            CONTAINER_DATA = pd.read_csv(cp_config["Paths"]["ContainerDataPath"], sep="\t")
-            if len(cp_config["Paths"]["ContainerDataCols"]) > 0:
+            CONTAINER_DATA = dd.read_csv(cp_config["Paths"]["ContainerDataPath"], sep="\t")
+            if isinstance(limit_cols, list):
+                CONTAINER_DATA = CONTAINER_DATA[limit_cols]
+            elif limit_cols is True and len(cp_config["Paths"]["ContainerDataCols"]) > 0:
                 CONTAINER_DATA = CONTAINER_DATA[cp_config["Paths"]["ContainerDataCols"]]
-            CONTAINER_DATA = CONTAINER_DATA.apply(pd.to_numeric, errors='ignore')
     elif "batch_d" in res:
         if "BATCH_DATA" not in glbls:
             global BATCH_DATA
             print("- loading resource:                        (BATCH_DATA)")
-            BATCH_DATA = pd.read_csv(cp_config["Paths"]["BatchDataPath"], sep="\t")
-            if len(cp_config["Paths"]["BatchDataCols"]) > 0:
+            BATCH_DATA = dd.read_csv(cp_config["Paths"]["BatchDataPath"], sep="\t")
+            if isinstance(limit_cols, list):
+                BATCH_DATA = BATCH_DATA[limit_cols]
+            elif limit_cols is True and len(cp_config["Paths"]["BatchDataCols"]) > 0:
                 BATCH_DATA = BATCH_DATA[cp_config["Paths"]["BatchDataCols"]]
-            BATCH_DATA = BATCH_DATA.apply(pd.to_numeric, errors='ignore')
     elif "datast" in res:
         if "DATASTORE" not in glbls:
             global DATASTORE
             print("- loading resource:                        (DATASTORE)")
             try:
-                DATASTORE = pd.read_csv(cp_config["Paths"]["DatastorePath"], sep="\t")
+                DATASTORE = dd.read_csv(cp_config["Paths"]["DatastorePath"], sep="\t")
             except FileNotFoundError:
                 print("  * DATASTORE not found, creating new one.")
                 DATASTORE = pd.DataFrame()
@@ -643,7 +640,7 @@ def load_resource(resource, mode="cpd"):
         if "LAYOUTS" not in glbls:
             global LAYOUTS
             print("- loading resource:                        (LAYOUTS)")
-            LAYOUTS = pd.read_csv(cp_config["Paths"]["LayoutsPath"], sep="\t")
+            LAYOUTS = dd.read_csv(cp_config["Paths"]["LayoutsPath"], sep="\t")
     else:
         raise FileNotFoundError("# unknown resource: {}".format(resource))
 
