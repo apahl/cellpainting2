@@ -31,18 +31,31 @@ def flush_print(txt):
 
 def aggregate(input_dir, agg_type="median", sep="\t"):
     df_list = []
-    keep_image = ["ImageNumber", "Metadata_Well", "Metadata_Plate", "Metadata_Site", "Count_Cells"]
+    keep_image = ["ImageNumber", "Metadata_Well",
+                  "Metadata_Plate", "Metadata_Site", "Count_Cells"]
     if sep == ",":
         f_ext = "csv"
     else:
         f_ext = "txt"
     for idx in range(96):
         im_start = idx * 36 + 1
-        flush_print("* Slice {:2d}: {} - {}...".format(idx + 1, im_start, im_start + 35))
-        df_slice = pd.read_csv("{}/{}/Image.{}".format(input_dir, im_start, f_ext), sep=sep)
+        flush_print(
+            "* Slice {:2d}: {} - {}...".format(idx + 1, im_start, im_start + 35))
+        df_slice = pd.read_csv(
+            "{}/{}/Image.{}".format(input_dir, im_start, f_ext), sep=sep)
         df_slice = df_slice[keep_image]
         for ch in ["Cells", "Nuclei", "Cytoplasm"]:
-            df = pd.read_csv("{}/{}/{}.{}".format(input_dir, im_start, ch, f_ext), sep=sep)
+            df = pd.read_csv("{}/{}/{}.{}".format(input_dir,
+                                                  im_start, ch, f_ext), sep=sep)
+            # remove the other "angles"
+            parms_to_remove = []
+            for x in df.keys():
+                for ending in ["_01", "_02", "_03"]:
+                    if x.endswith(ending):
+                        parms_to_remove.append(x)
+                        break
+            df.drop(parms_to_remove, axis=1, inplace=True)
+
             keys = list(df.keys())
             keys.pop(keys.index("ImageNumber"))
             keys.pop(keys.index("ObjectNumber"))
@@ -65,8 +78,10 @@ if __name__ == "__main__":
     # file_to_search file_w_smiles output_dir job_index
     parser = argparse.ArgumentParser(
         description="Aggregate CellProfiler Results by Mean or Median.\nWrites out a Results.tsv file.")
-    parser.add_argument("input_dir", help="The directory with the CellProfiler results.")
-    parser.add_argument("-s", "--sep", help="column separator (default is tab).")
+    parser.add_argument(
+        "input_dir", help="The directory with the CellProfiler results.")
+    parser.add_argument(
+        "-s", "--sep", help="column separator (default is tab).")
     parser.add_argument("-t", "--type", help="aggregation type, mean or median.",
                         choices=["mean", "median"])
     # parser.add_argument("", help="")
