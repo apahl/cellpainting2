@@ -1,11 +1,17 @@
 #!/bin/bash
 OUTPUT=$HOME/sacct.txt
 sacct > $OUTPUT
-COMPL=$(printf "%3d" $(cat $OUTPUT | grep COMPL | wc -l))
-RUNN=$(printf "%3d" $(cat $OUTPUT | grep RUNN | wc -l))
-PEND=$(printf "%3d" $(cat $OUTPUT | grep PEND | wc -l))
-FAIL=$(printf "%3d" $(cat $OUTPUT | grep FAIL | wc -l))
-echo "Number of jobs completed: $COMPL"
-echo "               running:   $RUNN"
-echo "               pending:   $PEND"
-echo "               failed:    $FAIL"
+CP_COMPL=$(printf "%3d" $(cat $OUTPUT | grep cp96 | grep COMPL | wc -l))
+CP_RUNN=$(printf "%3d" $(cat $OUTPUT | grep cp96 | grep RUNN | wc -l))
+CP_PEND=$(printf "%3d" $(cat $OUTPUT | grep cp96 | grep PEND | wc -l))
+CP_FAIL=$(printf "%3d" $(cat $OUTPUT | grep cp96 | grep FAIL | wc -l))
+
+PP_COMPL=$(printf "%3d" $(cat $OUTPUT | grep postproc | grep COMPL | wc -l))
+PP_RUNN=$(printf "%3d" $(cat $OUTPUT | grep postproc | grep RUNN | wc -l))
+PP_PEND=$(printf "%3d" $(cat $OUTPUT | grep postproc | grep PEND | wc -l))
+PP_FAIL=$(printf "%3d" $(cat $OUTPUT | grep postproc | grep FAIL | wc -l))
+
+echo "                     Job Overview"
+echo "              Compl.  Runn.  Fail  Pend."
+echo "cp_batch_96    $CP_COMPL     $CP_RUNN    $CP_FAIL   $CP_PEND"
+echo "postproc       $PP_COMPL     $PP_RUNN    $PP_FAIL   $PP_PEND"
