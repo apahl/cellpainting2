@@ -18,8 +18,6 @@ import yaml
 import pandas as pd
 import scipy.spatial.distance as dist
 
-from .config import ACT_PROF_PARAMETERS
-
 ROWS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
         "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"]
 STRUCT = "/home/pahl/comas/share/export_data_b64.csv.gz"
@@ -49,6 +47,16 @@ def load_config(conf):
         print("the `cluster_tools directories` for templates and locations.")
         raise
     return config
+
+
+def is_interactive_ipython():
+    try:
+        get_ipython()
+        ipy = True
+        # print("> interactive IPython session.")
+    except NameError:
+        ipy = False
+    return ipy
 
 
 def profile_sim(current, reference):

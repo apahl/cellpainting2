@@ -10,21 +10,23 @@ Dirs:
 
 Paths:
     SrcPath: /home/pahl/comas/painting/plates/{}-{}
-    SmilesPath: /home/pahl/comas/share/comas_smiles_b64.tsv.gz    # tab-delim., gzipped
+    SmilesPath: /home/pahl/comas/share/comas_smiles_b64.tsv    # tab-delim.
     SmilesCols:
         - Compound_Id
         - Smiles
-    BatchPath: /home/pahl/comas/share/comas_batch.tsv.gz          # tab-delim., gzipped
+    BatchPath: /home/pahl/comas/share/comas_batch.tsv          # tab-delim.
     BatchCols: []
-    ContainerPath: /home/pahl/comas/share/comas_container.tsv.gz    # tab-delim., gzipped
-    ContainerCols: []
-    # tab-delim., gzipped
-    BatchDataPath: /home/pahl/comas/share/comas_batch_data.tsv.gz
+    ContainerPath: /home/pahl/comas/share/comas_container.tsv    # tab-delim.
+    ContainerCols:
+        - Container_Id
+        - Compound_Id
+    # tab-delim.
+    BatchDataPath: /home/pahl/comas/share/comas_batch_data.tsv
     BatchDataCols:
         - Batch_Id
         - Pure_Flag
-    # tab-delim., gzipped
-    ContainerDataPath: /home/pahl/comas/share/comas_container_data.tsv.gz
+    # tab-delim.
+    ContainerDataPath: /home/pahl/comas/share/comas_container_data.tsv
     ContainerDataCols: []
     AnnotationsPath: /home/pahl/comas/share/known_act.tsv  # tab-delim.
     ReferencesPath: /home/pahl/comas/notebooks/projects/painting2/data/references_act_prof.tsv
@@ -45,7 +47,9 @@ Paths:
         - Metadata_Well
         - Plate
         - Smiles
-    LayoutsPath: /home/pahl/comas/painting/plates/layouts/layouts.tsv
+    LayoutsPath: /home/pahl/comas/projects/painting/plates/layouts/layouts.tsv
+    LayoutsJoinCol: Address_384
+    LayoutsNameCol: Plate_name_384
 
 # ----------------------------------------------------------------------------
 ParameterHelp:
@@ -66,6 +70,9 @@ Cutoffs:
     LimitActivityL: 5.0
     LimitSimilarityH: 75
     LimitSimilarityL: 50
+
+Otions:
+    InPlace: True  # whether to modifiy DataFrames inplace or not.
 
 Parameters:
     - Median_Cells_AreaShape_Area

@@ -32,6 +32,10 @@ from cellpainting2 import processing as cpp
 cp_config = cpt.load("config")
 cp_plates = cpt.load_config("plates")
 
+IPYTHON = cpt.is_interactive_ipython()
+if IPYTHON:
+    from IPython.core.display import HTML
+
 ACT_PROF_PARAMETERS = cp_config["Parameters"]
 
 ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
@@ -57,8 +61,6 @@ XTICKS.append(len(ACT_PROF_PARAMETERS))
 
 Draw.DrawingOptions.atomLabelFontFace = "DejaVu Sans"
 Draw.DrawingOptions.atomLabelFontSize = 18
-
-from IPython.core.display import HTML
 
 try:
     from misc_tools import apl_tools
@@ -583,6 +585,8 @@ def heat_hv(df, id_prop="Compound_Id", cmap="bwr", invert_y=False):
 
 def show_images(plate_quad, well):
     """For interactive viewing in the notebook."""
+    if not IPYTHON:
+        return
     date = cp_plates["Dates"][plate_quad]
     src_dir = cp_config["Paths"]["SrcPath"].format(date, plate_quad)
     ctrl_images = load_control_images(src_dir)
@@ -717,4 +721,5 @@ def full_report(df, src_dir, report_name="report", plate=None,
         write_page(details, title=title, fn=fn, templ=cprt.DETAILS_HTML_INTRO)
 
     print("* done.")
-    return HTML('<a href="{}">{}</a>'.format(overview_fn, "Overview"))
+    if IPYTHON:
+        return HTML('<a href="{}">{}</a>'.format(overview_fn, "Overview"))
