@@ -37,17 +37,17 @@ def aggregate(input_dir, num_jobs=96, agg_type="median", sep="\t"):
         f_ext = "csv"
     else:
         f_ext = "txt"
-    im_per_job = 3456 / num_jobs
+    im_per_job = int(3456 / num_jobs)
     for idx in range(num_jobs):
-        im_start = idx * im_per_job + 1
+        im_start = int(idx * im_per_job + 1)
         flush_print(
-            "* Slice {:2d}: {} - {}...".format(idx + 1, im_start, im_start + im_per_job - 1))
+            "* Slice {:2d}: {:d} - {:d}...".format(idx + 1, im_start, im_start + im_per_job - 1))
         df_slice = pd.read_csv(
-            "{}/{}/Image.{}".format(input_dir, im_start, f_ext), sep=sep)
+            "{}/{:d}/Image.{}".format(input_dir, im_start, f_ext), sep=sep)
         df_slice = df_slice[keep_image]
         for ch in ["Cells", "Nuclei", "Cytoplasm"]:
-            df = pd.read_csv("{}/{}/{}.{}".format(input_dir,
-                                                  im_start, ch, f_ext), sep=sep)
+            df = pd.read_csv("{}/{:d}/{}.{}".format(input_dir,
+                                                    im_start, ch, f_ext), sep=sep)
             # remove the other "angles"
             parms_to_remove = []
             for x in df.keys():
