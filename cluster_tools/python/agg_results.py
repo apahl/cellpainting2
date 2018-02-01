@@ -29,7 +29,7 @@ def flush_print(txt):
     sys.stdout.flush()
 
 
-def aggregate(input_dir, agg_type="median", sep="\t"):
+def aggregate(input_dir, num_jobs=96, agg_type="median", sep="\t"):
     df_list = []
     keep_image = ["ImageNumber", "Metadata_Well",
                   "Metadata_Plate", "Metadata_Site", "Count_Cells"]
@@ -37,10 +37,11 @@ def aggregate(input_dir, agg_type="median", sep="\t"):
         f_ext = "csv"
     else:
         f_ext = "txt"
-    for idx in range(96):
-        im_start = idx * 36 + 1
+    im_per_job = 3456 / num_jobs
+    for idx in range(num_jobs):
+        im_start = idx * im_per_job + 1
         flush_print(
-            "* Slice {:2d}: {} - {}...".format(idx + 1, im_start, im_start + 35))
+            "* Slice {:2d}: {} - {}...".format(idx + 1, im_start, im_start + im_per_job - 1))
         df_slice = pd.read_csv(
             "{}/{}/Image.{}".format(input_dir, im_start, f_ext), sep=sep)
         df_slice = df_slice[keep_image]
@@ -70,7 +71,7 @@ def aggregate(input_dir, agg_type="median", sep="\t"):
     df_plate = pd.concat(df_list)
     nrows = df_plate.shape[0]
     if nrows != 3456:
-        print("# unexpected number of rows:", nrows)
+        raise ValueError("# unexpected number of rows: {}".format(nrows))
     df_plate.to_csv("{}/Results.tsv".format(input_dir), sep="\t")
 
 
@@ -78,20 +79,16 @@ if __name__ == "__main__":
     # file_to_search file_w_smiles output_dir job_index
     parser = argparse.ArgumentParser(
         description="Aggregate CellProfiler Results by Mean or Median.\nWrites out a Results.tsv file.")
-    parser.add_argument(
-        "input_dir", help="The directory with the CellProfiler results.")
-    parser.add_argument(
-        "-s", "--sep", help="column separator (default is tab).")
+    parser.add_argument("input_dir", help="The directory with the CellProfiler results.")
+    parser.add_argument("-s", "--sep",
+                        default="\t", help="column separator (default is tab).")
     parser.add_argument("-t", "--type", help="aggregation type, mean or median.",
-                        choices=["mean", "median"])
+                        choices=["mean", "median"], default="median")
+    parser.add_argument("-j", "--jobs", help="number of jobs (default is 96)",
+                        default=96, type=int)
     # parser.add_argument("", help="")
 
     args = parser.parse_args()
-    sep = "\t"
-    if args.sep is not None:
-        sep = args.sep
-    if args.type is None:
-        args.type = "median"
     print("* aggregation type set to", args.type)
     err = False
     reason = ""
@@ -101,8 +98,18 @@ if __name__ == "__main__":
             err = True
             reason = "Input dir {} does not exist.".format(args.input_dir)
 
+    if 3456 % args.jobs != 0:
+        err = True
+        reason = ("Total number of images (3456) has to be dividable "
+                  "by number of jobs ({}) without remainder.".format(args.jobs))
+
+    # print("input_dir:", args.input_dir)
+    # print("sep:      ", args.sep == "\t")
+    # print("type:     ", args.type)
+    # print("jobs:     ", args.jobs)
+
     if err:
-        print(reason)
+        print("ERROR: {}\n".format(reason))
         usage()
 
-    aggregate(args.input_dir, agg_type=args.type, sep=sep)
+    aggregate(args.input_dir, num_jobs=args.jobs, agg_type=args.type, sep=args.sep)
