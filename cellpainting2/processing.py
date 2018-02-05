@@ -55,7 +55,8 @@ except ImportError:
         "%y%m%d-%H:%M", time.localtime(op.getmtime(__file__)))))
 
 FINAL_PARAMETERS = ['Metadata_Plate', 'Metadata_Well', 'plateColumn', 'plateRow',
-                    "Compound_Id", 'Container_Id', "Well_Id", "Producer", "Pure_Flag", "Toxic",
+                    "Compound_Id", 'Container_Id', "Well_Id", "Producer", "Pure_Flag",
+                    "Toxic", "Is_Ref",
                     "Rel_Cell_Count", "Known_Act", "Trivial_Name", 'WellType', 'Conc_uM',
                     "Activity", "Plate", "Smiles"]
 DROP_FROM_NUMBERS = ['plateColumn', 'plateRow', 'Conc_uM', "Compound_Id"]
@@ -193,7 +194,7 @@ class DataSet():
             return result
 
     def keep_cols(self, cols, inplace=False):
-        drop = set(self.data.columns) - set(cols)
+        drop = list(set(self.data.columns) - set(cols))
         if inplace:
             self.data = self.data.drop(drop, axis=1)
         else:
@@ -213,10 +214,10 @@ class DataSet():
         self.data = read_csv(fn, sep=sep).data
 
     def write_csv(self, fn, parameters=None, sep="\t"):
-        result = self.data
-        if isinstance(parameters, list):
-            result = result[parameters]
-        result.to_csv(fn, sep=sep, index=False)
+        if parameters is None:
+            parameters = list(self.data.columns)
+        result = self.keep_cols(parameters)
+        result.data.to_csv(fn, sep=sep, index=False)
         result.print_log("write csv")
 
     def write_pkl(self, fn):
@@ -283,7 +284,7 @@ class DataSet():
         position_from_well(self.data, well_name=well_name,
                            row_name=row_name, col_name=col_name)
 
-    def join_layout_1536(self, plate, quadrant, on="Address_384", how="inner"):
+    def join_layout_1536(self, plate, quadrant="", how="inner"):
         """Cell Painting is always run in 384er plates.
         COMAS standard screening plates are format 1536.
         With this function, the 1536-to-384 reformatting file
@@ -293,7 +294,7 @@ class DataSet():
         assert self.is_pandas, "`data` has to be a Pandas DataFrame."
         result = DataSet(log=self.log)
         result.data = join_layout_1536(
-            self.data, plate, quadrant, on=on, how=how)
+            self.data, plate, quadrant)
         return result
 
     def numeric_parameters(self):
@@ -384,6 +385,7 @@ class DataSet():
         result.data = join_annotations(self.data)
         return result
 
+
     def activity_profile(self, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_final=True):
         """Calculates the log2-fold values for the parameters.
 
@@ -424,9 +426,9 @@ class DataSet():
         This method does not return anything, it just writes the result to file."""
         update_similar_refs(self.data, mode=mode, write=write)
 
-    def update_datastore(self, mode="cpd", write=True):
+    def update_datastore(self, write=True):
         """Update the DataStore with the current DataFrame."""
-        update_datastore(self.data, mode=mode, write=write)
+        update_datastore(self.data, write=write)
 
     def find_similar(self, act_profile, cutoff=0.5, max_num=5):
         """Filter the dataframe for activity profiles similar to the given one.
@@ -486,8 +488,15 @@ def print_log(df, component, add_info=""):
     component = component + ":"
     if len(add_info) > 0:
         add_info = "    ({})".format(add_info)
-    print("* {:22s} ({:5d} | {:4d}){}".format(component,
-                                              df.shape[0], df.shape[1], add_info))
+    if is_pandas(df):
+        print("* {:22s} ({:5d} | {:4d}){}".format(component,
+              df.shape[0], df.shape[1], add_info))
+    elif is_dask(df):
+        df_cols = len(df.columns)
+        print("* {:22s} ( dask | {:4d}){}".format(component,
+              df_cols, add_info))
+    else:
+        print("* {:22s} ( unknown    )".format(component))
 
 
 def clear_resources():
@@ -532,7 +541,7 @@ def load_resource(resource, mode="cpd", limit_cols=True):
         if "SMILES" not in glbls:
             # except NameError:
             global SMILES
-            print("- loading resource:                        (SMILES)")
+            print("  - loading resource:                      (SMILES)")
             SMILES = dd.read_csv(cp_config["Paths"]["SmilesPath"], sep="\t")
             if isinstance(limit_cols, list):
                 SMILES = SMILES[limit_cols]
@@ -542,13 +551,13 @@ def load_resource(resource, mode="cpd", limit_cols=True):
     elif "anno" in res:
         if "ANNOTATIONS" not in glbls:
             global ANNOTATIONS
-            print("- loading resource:                        (ANNOTATIONS)")
+            print("  - loading resource:                      (ANNOTATIONS)")
             ANNOTATIONS = dd.read_csv(
                 cp_config["Paths"]["AnnotationsPath"], sep="\t")
     elif "sim" in res:
         if "SIM_REFS" not in glbls:
             global SIM_REFS
-            print("- loading resource:                        (SIM_REFS)")
+            print("  - loading resource:                      (SIM_REFS)")
             if "ext" in mode.lower():
                 srp = cp_config["Paths"]["SimRefsExtPath"]
             else:
@@ -561,13 +570,13 @@ def load_resource(resource, mode="cpd", limit_cols=True):
     elif "ref" in res:
         if "REFERENCES" not in glbls:
             global REFERENCES
-            print("- loading resource:                        (REFERENCES)")
+            print("  - loading resource:                      (REFERENCES)")
             REFERENCES = dd.read_csv(
                 cp_config["Paths"]["ReferencesPath"], sep="\t")
     elif "cont" in res:
         if "CONTAINER" not in glbls:
             global CONTAINER
-            print("- loading resource:                        (CONTAINER)")
+            print("  - loading resource:                      (CONTAINER)")
             CONTAINER = dd.read_csv(
                 cp_config["Paths"]["ContainerPath"], sep="\t")
             if isinstance(limit_cols, list):
@@ -577,7 +586,7 @@ def load_resource(resource, mode="cpd", limit_cols=True):
     elif "container_d" in res:
         if "CONTAINER_DATA" not in glbls:
             global CONTAINER_DATA
-            print("- loading resource:                        (CONTAINER)")
+            print("  - loading resource:                      (CONTAINER)")
             CONTAINER_DATA = dd.read_csv(
                 cp_config["Paths"]["ContainerDataPath"], sep="\t")
             if isinstance(limit_cols, list):
@@ -588,9 +597,10 @@ def load_resource(resource, mode="cpd", limit_cols=True):
     elif "batch_d" in res:
         if "BATCH_DATA" not in glbls:
             global BATCH_DATA
-            print("- loading resource:                        (BATCH_DATA)")
+            print("  - loading resource:                      (BATCH_DATA)")
             BATCH_DATA = dd.read_csv(
-                cp_config["Paths"]["BatchDataPath"], sep="\t")
+                cp_config["Paths"]["BatchDataPath"], sep="\t",
+                dtype={"Identity": np.object, "LCMS_Date": np.object})
             if isinstance(limit_cols, list):
                 BATCH_DATA = BATCH_DATA[limit_cols]
             elif limit_cols is True and len(cp_config["Paths"]["BatchDataCols"]) > 0:
@@ -598,17 +608,17 @@ def load_resource(resource, mode="cpd", limit_cols=True):
     elif "datast" in res:
         if "DATASTORE" not in glbls:
             global DATASTORE
-            print("- loading resource:                        (DATASTORE)")
+            print("  - loading resource:                      (DATASTORE)")
             try:
                 DATASTORE = dd.read_csv(
                     cp_config["Paths"]["DatastorePath"], sep="\t")
-            except FileNotFoundError:
+            except (FileNotFoundError, OSError):
                 print("  * DATASTORE not found, creating new one.")
-                DATASTORE = pd.DataFrame()
+                DATASTORE = dd.from_pandas(pd.DataFrame(), npartitions=1)
     elif "layout" in res:
         if "LAYOUTS" not in glbls:
             global LAYOUTS
-            print("- loading resource:                        (LAYOUTS)")
+            print("  - loading resource:                      (LAYOUTS)")
             LAYOUTS = dd.read_csv(cp_config["Paths"]["LayoutsPath"], sep="\t")
             cols = LAYOUTS.columns
             rename = {}
@@ -644,8 +654,10 @@ def well_type_from_position(df):
     Controls are in column 11 and 12.
     Operates inplace!"""
     df["WellType"] = "Compound"
-    df["WellType"][(df["plateColumn"] == 11) | (
-        df["plateColumn"] == 12)] = "Control"
+    # df[(df["plateColumn"] == 11) | (
+    #     df["plateColumn"] == 12)]["WellType"] = "Control"
+    df.loc[(df["plateColumn"] == 11) | (df["plateColumn"] == 12),
+               "WellType"] = "Control"
     print_log(df, "well type from pos")
 
 
@@ -685,7 +697,7 @@ def get_cpd_from_container(df):
     return result
 
 
-def join_layout_1536(df, plate, quadrant):
+def join_layout_1536(df, plate, quadrant=""):
     """Cell Painting is always run in 384er plates.
     COMAS standard screening plates are format 1536.
     With this function, the 1536-to-384 reformatting file
@@ -697,8 +709,10 @@ def join_layout_1536(df, plate, quadrant):
     # layout = LAYOUTS.copy()
     if not isinstance(quadrant, str):
         quadrant = str(quadrant)
+    if len(quadrant) > 0:
+        quadrant = "-" + quadrant
     result = df.copy()
-    result[join_col] = plate + "-" + quadrant + result["Metadata_Well"]
+    result[join_col] = plate + result["Metadata_Well"]
     result = LAYOUTS.merge(result, on=join_col, how="inner").compute()
     result = join_container(result)
     result.drop(join_col, axis=1, inplace=True)
@@ -726,12 +740,12 @@ def update_datastore(df, on="Well_Id", write=False):
     ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
     df2 = df2[ds_cols]
-    DATASTORE = DATASTORE.append(df2, ignore_index=True)
+    DATASTORE = dd.concat([DATASTORE, df2], interleave_partitions=True)
     rem = "" if write else "write is off"
-    print_log(df2, "update datastore", rem)
     DATASTORE = DATASTORE.drop_duplicates(subset=on, keep="last")
     if write:
         write_datastore()
+    print_log(df2, "update datastore", rem)
 
 
 def invert_how(how):
@@ -810,8 +824,9 @@ def join_smiles(df, df_smiles=None, how="left"):
     result = df_smiles.merge(df, on="Compound_Id", how=how)
     if is_dask(result):
         result = result.compute()
-    result = result.apply(pd.to_numeric, errors='ignore')
-    result = result.fillna("*")
+    result["Compound_Id"] = result["Compound_Id"].apply(pd.to_numeric, errors='ignore')
+    result["Smiles"] = result["Smiles"].fillna("*")
+    result["Is_Ref"] = result["Is_Ref"].fillna(False)
     print_log(result, "join smiles")
     return result
 
@@ -827,6 +842,22 @@ def join_annotations(df):
     result = result.fillna("")
     print_log(result, "join annotations")
     return result
+
+
+def extract_references(df=None):
+    """Extract the references from the given df (Dask or Pandas,
+    or from the DATASTORE, if df is None) by the Is_Ref tag.
+    Joins the known_activities from file and saves as REFERENCES resource."""
+    if df is None:
+        load_resource("DATASTORE")
+        df = DATASTORE
+    df_ref = df[(df["Is_Ref"]) & (~df["Toxic"]) & (df["Pure_Flag"] != "Fail") &
+                (df["Activity"] > 5.0)]
+    if is_dask((df_ref)):
+        df_ref = df_ref.compute()
+    df_anno = join_annotation(df_ref)
+    df_anno.to_csv(cp_config["Paths"]["ReferencesPath"], sep="\t", index=False)
+
 
 
 def metadata(df):
@@ -983,7 +1014,7 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
         r_keys = set(result.keys())
         keep = FINAL_PARAMETERS.copy()
         keep.extend(act_parameters)
-        keep_and_present = r_keys.intersection(set(keep))
+        keep_and_present = list(r_keys.intersection(set(keep)))
         result = result[keep_and_present]
     result = result.round(decimals)
     print_log(result, "activity profile")

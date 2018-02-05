@@ -3,17 +3,17 @@
 # On Windows, put in $HOME/cellpainting2/config.yaml
 # ----------------------------------------------------------------------------
 Dirs:
-    PlatesDir: /home/pahl/comas/painting/plates
+    PlatesDir: /home/pahl/comas/projects/painting/plates
     DataDir: /home/pahl/comas/notebooks/projects/painting2/data
     CompoundDir: /home/pahl/comas/share
     ReportDir: /home/pahl/comas/share/cp2/reports
 
 Paths:
-    SrcPath: /home/pahl/comas/painting/plates/{}-{}
-    SmilesPath: /home/pahl/comas/share/comas_smiles_b64.tsv    # tab-delim.
+    SmilesPath: /home/pahl/comas/share/comas_smiles.tsv    # tab-delim.
     SmilesCols:
         - Compound_Id
         - Smiles
+        - Is_Ref
     BatchPath: /home/pahl/comas/share/comas_batch.tsv          # tab-delim.
     BatchCols: []
     ContainerPath: /home/pahl/comas/share/comas_container.tsv    # tab-delim.
@@ -30,9 +30,9 @@ Paths:
     ContainerDataCols: []
     AnnotationsPath: /home/pahl/comas/share/known_act.tsv  # tab-delim.
     ReferencesPath: /home/pahl/comas/notebooks/projects/painting2/data/references_act_prof.tsv
-    SimRefsPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs.tsv
-    SimRefsExtPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs_ext.tsv
-    DatastorePath: /home/pahl/comas/notebooks/projects/painting2/data/cp_datastore.tsv
+    SimRefsPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs-*.tsv
+    SimRefsExtPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs_ext-*.tsv
+    DatastorePath: /home/pahl/comas/notebooks/projects/painting2/data/cp_datastore-*.tsv
     DatastoreCols:
         - Compound_Id
         - Container_Id

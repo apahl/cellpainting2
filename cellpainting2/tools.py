@@ -12,7 +12,8 @@ Helper Tools acting on individual data..
 
 import os
 import os.path as op
-from collections import Counter
+import glob
+from collections import Counter, namedtuple
 import yaml
 
 import pandas as pd
@@ -67,6 +68,40 @@ def profile_sim(current, reference):
     assert ref_len == len(
         current), "Activity Profiles must have the same length to be compared."
     result = 1 - dist.correlation(current, reference)
+    return result
+
+
+def split_plate_name(full_name, sep="-"):
+    """Split the full platename into (date, plate).
+    Returns a namedtuple or None, if the name spec is not met."""
+    parts = full_name.split(sep=sep, maxsplit=1)
+    if len(parts) == 0:
+        return None  # The full plate name needs to contain at least one '-'.
+    if len(parts[0]) != 6:
+        return None  # The date has to be of format <yymmdd>.
+    Plate = namedtuple("Plate", ["date", "name"])
+    result = Plate(date=parts[0], name=parts[1])
+    return result
+
+
+def get_plates_in_dir(dir, exclude=["layout"]):
+    """Return a list of all plates in the given dir.
+    Performs a search of the subdirs in the dir and adds plate if it conforms
+    to the `split_plate_name` spec.
+    Returns a list of full plate name strings."""
+    result = []
+    plate_dir = op.join(dir, "*")
+    for dir_name in glob.glob(plate_dir):
+        skip = False
+        for x in exclude:
+            if x in dir_name:
+                skip = True
+                break
+        if skip: continue
+        if not op.isdir(dir_name): continue
+        plate = split_plate_name(dir_name)
+        if plate is None: continue  # the dir_name does not conform to the spec
+        result.append(dir_name)  # apped the full platename as string
     return result
 
 
