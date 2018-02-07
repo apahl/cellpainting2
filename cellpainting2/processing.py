@@ -12,6 +12,7 @@ or interactively in the Jupyter notebook.
 This module provides the DataSet class and its methods.
 Additional functions in this module act on Dask or Pandas DataFrames."""
 
+import sys
 import time
 import glob
 import math
@@ -419,12 +420,12 @@ class DataSet():
                                 sort_by_input=sort_by_input)
         return result
 
-    def update_similar_refs(self, mode="cpd", write=True):
+    def update_similar_refs(self, write=True):
         """Find similar compounds in references and update the export file.
         The export file of the dict object is in tsv format. In addition,
         a tsv file with only the most similar reference is written for use in PPilot.
         This method does not return anything, it just writes the result to file."""
-        update_similar_refs(self.data, mode=mode, write=write)
+        update_similar_refs(self.data, write=write)
 
     def update_datastore(self, write=True):
         """Update the DataStore with the current DataFrame."""
@@ -484,6 +485,12 @@ def read_pkl(fn):
     return result
 
 
+def flush_print(txt, end=""):
+    txt = txt + "\r"
+    print(txt, end=end)
+    sys.stdout.flush()
+
+
 def print_log(df, component, add_info=""):
     component = component + ":"
     if len(add_info) > 0:
@@ -532,13 +539,13 @@ def clear_resources():
         pass
 
 
-def load_resource(resource, mode="cpd", limit_cols=True):
+def load_resource(resource, force=False, mode="cpd", limit_cols=True):
     """Available resources: SMILES, ANNOTATIONS, SIM_REFS, REFERENCES,
                             CONTAINER, CONTAINER_DATA, BATCH_DATA, DATASTORE, LAYOUTS"""
     res = resource.lower()
     glbls = globals()
     if "smi" in res:
-        if "SMILES" not in glbls:
+        if force or "SMILES" not in glbls:
             # except NameError:
             global SMILES
             print("  - loading resource:                      (SMILES)")
@@ -549,13 +556,13 @@ def load_resource(resource, mode="cpd", limit_cols=True):
                 SMILES = SMILES[cp_config["Paths"]["SmilesCols"]]
             # SMILES = SMILES.apply(pd.to_numeric, errors='ignore', axis=1)
     elif "anno" in res:
-        if "ANNOTATIONS" not in glbls:
+        if force or "ANNOTATIONS" not in glbls:
             global ANNOTATIONS
             print("  - loading resource:                      (ANNOTATIONS)")
             ANNOTATIONS = dd.read_csv(
                 cp_config["Paths"]["AnnotationsPath"], sep="\t")
     elif "sim" in res:
-        if "SIM_REFS" not in glbls:
+        if force or "SIM_REFS" not in glbls:
             global SIM_REFS
             print("  - loading resource:                      (SIM_REFS)")
             if "ext" in mode.lower():
@@ -564,17 +571,17 @@ def load_resource(resource, mode="cpd", limit_cols=True):
                 srp = cp_config["Paths"]["SimRefsPath"]
             try:
                 SIM_REFS = dd.read_csv(srp, sep="\t")
-            except FileNotFoundError:
+            except (FileNotFoundError, OSError):
                 print("  * SIM_REFS not found, creating new one.")
-                SIM_REFS = pd.DataFrame()
+                SIM_REFS = dd.from_pandas(pd.DataFrame(), npartitions=1)
     elif "ref" in res:
-        if "REFERENCES" not in glbls:
+        if force or "REFERENCES" not in glbls:
             global REFERENCES
             print("  - loading resource:                      (REFERENCES)")
             REFERENCES = dd.read_csv(
                 cp_config["Paths"]["ReferencesPath"], sep="\t")
     elif "cont" in res:
-        if "CONTAINER" not in glbls:
+        if force or "CONTAINER" not in glbls:
             global CONTAINER
             print("  - loading resource:                      (CONTAINER)")
             CONTAINER = dd.read_csv(
@@ -584,7 +591,7 @@ def load_resource(resource, mode="cpd", limit_cols=True):
             elif limit_cols is True and len(cp_config["Paths"]["ContainerCols"]) > 0:
                 CONTAINER = CONTAINER[cp_config["Paths"]["ContainerCols"]]
     elif "container_d" in res:
-        if "CONTAINER_DATA" not in glbls:
+        if force or "CONTAINER_DATA" not in glbls:
             global CONTAINER_DATA
             print("  - loading resource:                      (CONTAINER)")
             CONTAINER_DATA = dd.read_csv(
@@ -595,7 +602,7 @@ def load_resource(resource, mode="cpd", limit_cols=True):
                 CONTAINER_DATA = CONTAINER_DATA[cp_config["Paths"]
                                                 ["ContainerDataCols"]]
     elif "batch_d" in res:
-        if "BATCH_DATA" not in glbls:
+        if force or "BATCH_DATA" not in glbls:
             global BATCH_DATA
             print("  - loading resource:                      (BATCH_DATA)")
             BATCH_DATA = dd.read_csv(
@@ -606,7 +613,7 @@ def load_resource(resource, mode="cpd", limit_cols=True):
             elif limit_cols is True and len(cp_config["Paths"]["BatchDataCols"]) > 0:
                 BATCH_DATA = BATCH_DATA[cp_config["Paths"]["BatchDataCols"]]
     elif "datast" in res:
-        if "DATASTORE" not in glbls:
+        if force or "DATASTORE" not in glbls:
             global DATASTORE
             print("  - loading resource:                      (DATASTORE)")
             try:
@@ -616,7 +623,7 @@ def load_resource(resource, mode="cpd", limit_cols=True):
                 print("  * DATASTORE not found, creating new one.")
                 DATASTORE = dd.from_pandas(pd.DataFrame(), npartitions=1)
     elif "layout" in res:
-        if "LAYOUTS" not in glbls:
+        if force or "LAYOUTS" not in glbls:
             global LAYOUTS
             print("  - loading resource:                      (LAYOUTS)")
             LAYOUTS = dd.read_csv(cp_config["Paths"]["LayoutsPath"], sep="\t")
@@ -643,10 +650,13 @@ def drop_cols(df, cols, info=""):
     Listed columns that are not present in the DataFrame are simply ignored
     (no error is thrown)."""
     df_keys = set(df.columns)
-    drop = set(cols).intersection(df_keys)
-    result = df.drop(drop, axis=1)
-    print_log(result, "drop cols", info)
-    return result
+    drop = list(set(cols).intersection(df_keys))
+    if len(drop) > 0:
+        result = df.drop(drop, axis=1)
+        print_log(result, "drop cols", info)
+        return result
+    else:
+        return df
 
 
 def well_type_from_position(df):
@@ -657,7 +667,7 @@ def well_type_from_position(df):
     # df[(df["plateColumn"] == 11) | (
     #     df["plateColumn"] == 12)]["WellType"] = "Control"
     df.loc[(df["plateColumn"] == 11) | (df["plateColumn"] == 12),
-               "WellType"] = "Control"
+           "WellType"] = "Control"
     print_log(df, "well type from pos")
 
 
@@ -853,11 +863,13 @@ def extract_references(df=None):
         df = DATASTORE
     df_ref = df[(df["Is_Ref"]) & (~df["Toxic"]) & (df["Pure_Flag"] != "Fail") &
                 (df["Activity"] > 5.0)]
-    if is_dask((df_ref)):
+    if is_dask(df_ref):
         df_ref = df_ref.compute()
-    df_anno = join_annotation(df_ref)
+    df_anno = join_annotations(df_ref)
+    if is_dask(df_anno):
+        df_anno = df_anno.compute()
     df_anno.to_csv(cp_config["Paths"]["ReferencesPath"], sep="\t", index=False)
-
+    print_log(df_anno, "write annotations")
 
 
 def metadata(df):
@@ -1105,6 +1117,8 @@ def find_similar(df, act_profile, cutoff=0.5, max_num=5, only_final=True,
         if sim >= cutoff:
             rec["Similarity"] = sim
             sim_lst.append(rec)
+    if len(sim_lst) == 0:
+        return pd.DataFrame()
     result = pd.DataFrame(sim_lst)
     result = result.sort_values("Similarity", ascending=False).head(max_num)
     if only_final:
@@ -1144,6 +1158,7 @@ def write_sim_refs(mode="cpd"):
     else:
         sim_fn = cp_config["Paths"]["SimRefsPath"]
     sim_fn_pp = op.splitext(sim_fn)[0] + "_pp.tsv"
+    sim_fn_pp = sim_fn_pp.replace("-*", "")  # remove Dask naming scheme
     SIM_REFS = SIM_REFS[keep]
     sim_refs = SIM_REFS
     # the resource should be loaded at this point
@@ -1160,13 +1175,22 @@ def write_sim_refs(mode="cpd"):
                 rec_high[well_id] = rec
         else:
             rec_high[well_id] = rec
-    df = pd.DataFrame(rec_high.values())
+    df = pd.DataFrame(list(rec_high.values()))
     df = df.rename(columns={"Similarity": "Highest_Sim"})
     df.to_csv(sim_fn_pp, sep="\t", index=False)  # tsv for PPilot
     print("* {:22s} ({:5d} |  --  )".format("write sim_refs", len(sim_refs)))
 
 
-def update_similar_refs(df, mode="cpd", write=True):
+def save_sim_tmp(df_list, fn):
+    result = dd.concat(df_list, interleave_partitions=True)
+    result = result.drop_duplicates(
+        subset=["Well_Id", "Ref_Id"], keep="last")
+    result.to_csv(fn, sep="\t", index=False)
+    result = dd.read_csv(fn, sep="\t", dtype={"Smiles": np.object})
+    return result
+
+
+def update_similar_refs(df=None, write=True):
     """Find similar compounds in references and update the export file.
     The export file of the DataFrame object is in tsv format. In addition,
     another tsv file (or maybe JSON?) is written for use in PPilot.
@@ -1181,24 +1205,38 @@ def update_similar_refs(df, mode="cpd", write=True):
             return round(DataStructs.TanimotoSimilarity(mol_fp, query_fp), 3)
         return np.nan
 
+    if df is None:
+        load_resource("DATASTORE")
+        df = DATASTORE
     global SIM_REFS
     load_resource("REFERENCES")
-    load_resource("SIM_REFS", mode=mode)
+    load_resource("SIM_REFS", force=True)
     df_refs = REFERENCES
-    sim_refs = SIM_REFS
+    tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
+    assert len(tmp_dir) > 0, "tmp_dir may not be empty."
+    cpt.create_dirs(tmp_dir)
+    cpt.empty_dir(tmp_dir)
+    tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
+    sim_refs = drop_cols(SIM_REFS, "Times_Found")
+    ctr = cpt.Summary()
+    rec_ctr = 0
+    update_lst = []
+    save_needed = False
     for _, rec in df.iterrows():
         if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Toxic"]:
             # no similarites for low active or toxic compounds
             continue
+        rec_ctr += 1
         act_profile = rec[ACT_PROF_PARAMETERS].values.astype("float64")
         max_num = 5
         if rec["Is_Ref"]:
             max_num += 1
         similar = find_similar(
             df_refs, act_profile, cutoff=LIMIT_SIMILARITY_L / 100, max_num=max_num)
-        if rec["Is_Ref"]:
-            similar.drop(similar.head(1).index, inplace=True)
         if len(similar) > 0:
+            save_needed = True
+            if rec["Is_Ref"]:
+                similar.drop(similar.head(1).index, inplace=True)
             similar = similar[["Well_Id",
                                "Compound_Id", "Similarity", "Smiles"]]
             similar = similar.rename(
@@ -1213,15 +1251,24 @@ def update_similar_refs(df, mode="cpd", write=True):
                     lambda q: _chem_sim(mol_fp, q))
             else:
                 similar["Tanimoto"] = np.nan
-            sim_refs = sim_refs.append(similar, ignore_index=True)
+            update_lst.append(similar)
+            if rec_ctr % 250 == 0:
+                sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file)
+                update_lst = []
+                save_needed = False
 
-    # if this makes problems, put it in the loop again:
-    sim_refs = sim_refs.drop_duplicates(
-        subset=["Well_Id", "Ref_Id"], keep="last")
+        ctr[rec["Plate"]] += 1
+        if rec_ctr % 50 == 0:
+            ctr["Total"] = rec_ctr
+            ctr.print()
+    ctr.print(final=True)
+
+    if save_needed:
+        sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file)
 
     # Assign the number of times a reference was found by a research compound
-    sim_refs = drop_cols(sim_refs, ["Times_Found"])
-    tmp = sim_refs.copy()
+    # SIM_REFS = drop_cols(SIM_REFS, ["Times_Found"])
+    tmp = dd.read_csv(tmp_file, sep="\t")
     tmp = tmp[~tmp["Is_Ref"]]
     tmp = tmp.groupby(by="Ref_Id").count().reset_index()
     # "Compound_Id" is just one field that contains the correct count:

@@ -29,8 +29,8 @@ from cellpainting2 import tools as cpt
 from cellpainting2 import report_templ as cprt
 from cellpainting2 import processing as cpp
 
-cp_config = cpt.load("config")
-cp_plates = cpt.load_config("plates")
+cp_config = cpt.load_config("config")
+# cp_plates = cpt.load_config("plates")
 
 IPYTHON = cpt.is_interactive_ipython()
 if IPYTHON:
@@ -335,10 +335,7 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
         if has_details:
             detailed_cpds.append(well_id)
             details_fn = sanitize_filename(well_id)
-            if rec.get("Is_Ref", False):
-                plate = "references"
-            else:
-                plate = rec["Plate"]
+            plate = rec["Plate"]
             rec["Link"] = '<a href="../{}/details/{}.html">Detailed<br>Report</a>'.format(
                 plate, details_fn)
             if similars_determined:
@@ -347,9 +344,9 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
                     similar = pd.DataFrame(
                         {"Well_Id": [well_id], "Similarity": [rec["Similarity"]]})
                 else:
-                    similar = (sim_refs[sim_refs["Well_Id"] == well_id]
-                               .sort_values("Similarity", ascending=False)
-                               .reset_index())
+                    similar = sim_refs[sim_refs["Well_Id"] == well_id].compute()
+                    similar = similar.sort_values("Similarity",
+                                                  ascending=False).reset_index()
                 if len(similar) > 0:
                     max_sim = round(
                         similar["Similarity"][0] * 100, 1)  # first in the list has the highest similarity
@@ -382,6 +379,8 @@ def sim_ref_table(similar):
         rec = rec.to_dict()
         ref_id = rec["Ref_Id"]
         ref_data = df_refs[df_refs["Well_Id"] == ref_id]
+        if cpp.is_dask(ref_data):
+            ref_data = ref_data.compute()
         if len(ref_data) == 0:
             print(rec)
             raise ValueError("BUG: ref_data should not be empty.")
@@ -396,7 +395,8 @@ def sim_ref_table(similar):
         rec["mol_img"] = mol_img_tag(mol)
         rec["idx"] = idx + 1
 
-        link = sanitize_filename(rec["Well_Id"])
+        link = "../../{}/details/{}.html".format(rec["Plate"],
+                                                 sanitize_filename(rec["Well_Id"]))
         rec["link"] = link
         row = templ.substitute(rec)
         table.append(row)
@@ -583,12 +583,12 @@ def heat_hv(df, id_prop="Compound_Id", cmap="bwr", invert_y=False):
     return heatmap(opts)
 
 
-def show_images(plate_quad, well):
+def show_images(plate_full_name, well):
     """For interactive viewing in the notebook."""
     if not IPYTHON:
         return
-    date = cp_plates["Dates"][plate_quad]
-    src_dir = cp_config["Paths"]["SrcPath"].format(date, plate_quad)
+
+    src_dir = op.join(cp_config["Paths"]["SrcPath"], plate_full_name)
     ctrl_images = load_control_images(src_dir)
     image_dir = op.join(src_dir, "images")
     templ_dict = {}
@@ -607,6 +607,8 @@ def get_data_for_wells(well_ids):
     cpp.load_resource("DATASTORE")
     data = cpp.DATASTORE
     result = data[data["Well_Id"].isin(well_ids)]
+    if cpp.is_dask(result):
+        result = result.compute()
     result["_sort"] = pd.Categorical(
         result["Well_Id"], categories=well_ids, ordered=True)
     result = result.sort_values("_sort")
@@ -659,9 +661,9 @@ def detailed_report(rec, src_dir, ctrl_images):
     elif rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
         templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
     else:
-        similar = (sim_refs[sim_refs["Well_Id"] == well_id]
-                   .sort_values("Similarity", ascending=False)
-                   .reset_index())
+        similar = sim_refs[sim_refs["Well_Id"] == well_id].compute()
+        similar = similar.sort_values("Similarity",
+                                      ascending=False).reset_index()
         if len(similar) > 0:
             ref_tbl = sim_ref_table(similar)
             templ_dict["Ref_Table"] = ref_tbl
@@ -670,8 +672,9 @@ def detailed_report(rec, src_dir, ctrl_images):
         else:
             templ_dict["Ref_Table"] = "No similar references found."
 
-    cache_path = op.join("plots", rec["Plate"])
-    os.makedirs(cache_path, exist_ok=True)
+    cache_path = op.join(cp_config["Dirs"]["DataDir"], "plots", rec["Plate"])
+    if not op.isdir(cache_path):
+        os.makedirs(cache_path, exist_ok=True)
     hm_fn = sanitize_filename(rec["Well_Id"] + ".txt")
     hm_cache = op.join(cache_path, hm_fn)
     templ_dict["Heatmap"] = heat_mpl(df_heat, id_prop="Well_Id", cmap="bwr",
@@ -683,10 +686,11 @@ def detailed_report(rec, src_dir, ctrl_images):
 
 
 def full_report(df, src_dir, report_name="report", plate=None,
-                cutoff=0.6, act_cutoff=ACT_CUTOFF_PERC, highlight=False, mode="cpd"):
-    overview_fn = op.join(report_name, "index.html")
+                cutoff=0.6, act_cutoff=ACT_CUTOFF_PERC, highlight=False):
+    report_full_path = op.join(cp_config["Dirs"]["ReportDir"], report_name)
+    overview_fn = op.join(report_full_path, "index.html")
     date = time.strftime("%d-%m-%Y %H:%M", time.localtime())
-    cpt.create_dirs(op.join(report_name, "details"))
+    cpt.create_dirs(op.join(report_full_path, "details"))
     if isinstance(df, cpp.DataSet):
         df = df.data
     print("* creating overview...")
@@ -700,8 +704,7 @@ def full_report(df, src_dir, report_name="report", plate=None,
         highlight_legend = cprt.HIGHLIGHT_LEGEND
     else:
         highlight_legend = ""
-    overview, detailed_cpds = overview_report(
-        df, cutoff=cutoff, highlight=highlight, mode=mode)
+    overview, detailed_cpds = overview_report(df, cutoff=cutoff, highlight=highlight)
     overview = header + overview + highlight_legend
     write_page(overview, title=title, fn=overview_fn,
                templ=cprt.OVERVIEW_HTML_INTRO)
@@ -711,15 +714,20 @@ def full_report(df, src_dir, report_name="report", plate=None,
     ctrl_images = load_control_images(src_dir)
     print("  * writing individual reports...")
     df_detailed = df[df["Well_Id"].isin(detailed_cpds)]
+    ctr = 0
+    df_len = len(df_detailed)
     for _, rec in df_detailed.iterrows():
+        ctr += 1
+        if not IPYTHON and ctr % 10 == 0:
+            print("    ({:3d}%)\r".format(int(100 * ctr / df_len)), end="")
         well_id = rec["Well_Id"]
-        fn = op.join(report_name, "details",
+        fn = op.join(report_full_path, "details",
                      "{}.html".format(sanitize_filename(well_id)))
         title = "{} Details".format(well_id)
         # similar = detailed_cpds[well_id]
         details = detailed_report(rec, src_dir, ctrl_images)
         write_page(details, title=title, fn=fn, templ=cprt.DETAILS_HTML_INTRO)
 
-    print("* done.")
+    print("* done.    ")
     if IPYTHON:
         return HTML('<a href="{}">{}</a>'.format(overview_fn, "Overview"))

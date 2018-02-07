@@ -17,7 +17,7 @@ from io import BytesIO as IO
 from PIL import Image
 
 from cellpainting2 import tools as cpt
-cp_config = cpt.load("config")
+cp_config = cpt.load_config("config")
 # cp_plates = cpt.load_config("plates")
 
 ACT_PROF_PARAMETERS = cp_config["Parameters"]
@@ -803,7 +803,7 @@ REF_TABLE_HEADER = """
 REF_TABLE_ROW = """
 <tr>
     <td>$idx</td>
-    <td><a href="../../references/details/$link.html" ppLO="wpNT">$mol_img</a></td>
+    <td><a href="$link" ppLO="wpNT">$mol_img</a></td>
     <td>$Well_Id</td>
     <td title="Conc [&micro;M]">${Conc_uM}</td>
     <td title="Induction [%]">$Activity</td>

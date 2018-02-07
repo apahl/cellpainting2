@@ -60,6 +60,39 @@ def is_interactive_ipython():
     return ipy
 
 
+class Summary(Counter):
+    """An OrderedDict-based class that keeps track of the time since its instantiation.
+    Used for reporting running details of pipeline functions."""
+
+    def __init__(self, **kwargs):
+        """Parameters:
+            timeit: whether or not to use the timing functionality. Default: True"""
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        s_list = []
+        keys = sorted(self.keys())
+        mlen = max(map(len, keys))
+        line_end = "\n"
+        for idx, k in enumerate(keys, 1):
+            value = self[k]
+            s_list.append("{k:{mlen}s}: {val:>7}".format(k=k, mlen=mlen, val=value))
+            s_list.append(line_end)
+
+        result = "".join(s_list)
+        return result
+
+    def __repr__(self):
+        return self.__str__()
+
+    def print(self, final=False):
+        keys_len = len(self.keys())
+        result = self.__str__()
+        if not final:
+            result = result + '\033[{}A\r'.format(keys_len)
+        print(result, end="")
+
+
 def profile_sim(current, reference):
     """Calculate the similarity of two activity_profiles of the same length.
     Returns value between 0 .. 1"""
@@ -99,9 +132,10 @@ def get_plates_in_dir(dir, exclude=["layout"]):
                 break
         if skip: continue
         if not op.isdir(dir_name): continue
-        plate = split_plate_name(dir_name)
+        plate_name = op.split(dir_name)[1]
+        plate = split_plate_name(plate_name)
         if plate is None: continue  # the dir_name does not conform to the spec
-        result.append(dir_name)  # apped the full platename as string
+        result.append(plate_name)  # apped the full platename as string
     return result
 
 
@@ -179,8 +213,17 @@ def print_iter(l):
 
 
 def create_dirs(path):
-    if not op.exists(path):
+    if not op.isdir(path):
         os.makedirs(path)
+
+
+def empty_dir(path):
+    """Remove all file in the given directory."""
+    if not op.isdir(path): return
+    for fn in os.listdir(path):
+        full_name = op.join(path, fn)
+        if op.isfile(full_name):
+            os.unlink(full_name)
 
 
 def middle(lst, size):
@@ -202,3 +245,11 @@ def melt(df, id_prop="Compound_Id"):
     # result = result.sort_values([id_prop, "Parameter"]).reset_index().drop("index", axis=1)
     result = result[["Parameter", id_prop, "Value"]]
     return result
+
+
+def show_available_plates():
+    config = load_config("config")
+    plates = get_plates_in_dir(config["Dirs"]["PlatesDir"])
+    print("Available Plates:")
+    for plate_full_name in plates:
+        print("  -", plate_full_name)

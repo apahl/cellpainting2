@@ -9,85 +9,64 @@ Aggregate CellProfiler Results
 
 
 import argparse
-import sys
 import os.path as op
 # from collections import Counter
 
-import pandas as pd
+# import pandas as pd
+
+from cellpainting2 import tools as cpt
+from cellpainting2 import processing as cpp, reporting as cpr
+
+cp_config = cpt.load_config("config")
 
 
-def usage():
-    print("""Aggregate CellProfiler Results by Mean or Median.
-    Writes out a Results.tsv file.
-    agg_results.py -h for more help.""")
-    sys.exit(1)
+def create_reports(plates=None):
+    """`plate` has to be of the form: <yymmdd>-<platename>-<quadrant>,
+    e.g.: `180123-S0195-1` or `180123-C2017-1`.
+    `plates` can be a string, a comma-separated string of names, a list of strings,
+    or None (then reports for all plates present in the directory given in the config
+    will be generated)."""
+    if plates is None:
+        plates = cpt.get_plates_in_dir(cp_config["Dirs"]["PlatesDir"])
+    elif isinstance(plates, str):
+        plates = plates.split(",")
+    print("\nThe following plates will be processed:")
+    print(plates)
 
+    cpp.load_resource("DATASTORE")
+    ds = cpp.DATASTORE
+    for plate_full_name in plates:
+        plate = cpt.split_plate_name(plate_full_name)  # a namedtuple
+        if plate is None:
+            raise ValueError("Plate {} does not follow the spec.".format(plate_full_name))
+        print("\nCreating report for plate {}-{} ...".format(plate.date, plate.name))
+        src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
+        src_dir = src_templ.format(plate.date, plate.name)
 
-def flush_print(txt):
-    txt = txt + "\r"
-    print(txt)
-    sys.stdout.flush()
-
-
-def aggregate(input_dir, agg_type="median", sep="\t"):
-    df_list = []
-    keep_image = ["ImageNumber", "Metadata_Well", "Metadata_Plate", "Metadata_Site", "Count_Cells"]
-    if sep == ",":
-        f_ext = "csv"
-    else:
-        f_ext = "txt"
-    for idx in range(96):
-        im_start = idx * 36 + 1
-        flush_print("* Slice {:2d}: {} - {}...".format(idx + 1, im_start, im_start + 35))
-        df_slice = pd.read_csv("{}/{}/Image.{}".format(input_dir, im_start, f_ext), sep=sep)
-        df_slice = df_slice[keep_image]
-        for ch in ["Cells", "Nuclei", "Cytoplasm"]:
-            df = pd.read_csv("{}/{}/{}.{}".format(input_dir, im_start, ch, f_ext), sep=sep)
-            keys = list(df.keys())
-            keys.pop(keys.index("ImageNumber"))
-            keys.pop(keys.index("ObjectNumber"))
-            if agg_type == "median":
-                df = df.groupby("ImageNumber")[keys].median()
-                df = df.add_prefix("Median_{}_".format(ch)).reset_index()
-            else:
-                df = df.groupby("ImageNumber")[keys].mean()
-                df = df.add_prefix("Mean_{}_".format(ch)).reset_index()
-            df_slice = pd.merge(df_slice, df, on="ImageNumber", how="left")
-        df_list.append(df_slice)
-    df_plate = pd.concat(df_list)
-    nrows = df_plate.shape[0]
-    if nrows != 3456:
-        print("# unexpected number of rows:", nrows)
-    df_plate.to_csv("{}/Results.tsv".format(input_dir), sep="\t")
+        ds_profile = ds[ds["Plate"] == plate_full_name].compute()
+        ds_profile = ds_profile.sort_values(["Toxic", "Activity"],
+                                            ascending=[True, False])
+        cpr.full_report(ds_profile, src_dir, report_name=plate_full_name,
+                        plate=plate_full_name, highlight=True)
 
 
 if __name__ == "__main__":
-    # file_to_search file_w_smiles output_dir job_index
     parser = argparse.ArgumentParser(
-        description="Aggregate CellProfiler Results by Mean or Median.\nWrites out a Results.tsv file.")
-    parser.add_argument("input_dir", help="The directory with the CellProfiler results.")
-    parser.add_argument("-s", "--sep", help="column separator (default is tab).")
-    parser.add_argument("-t", "--type", help="aggregation type, mean or median.",
-                        choices=["mean", "median"])
-    # parser.add_argument("", help="")
+        description="Create Cell Painting Reports.\n"
+                    "Writes the reports into the dir specified in config.\n"
+                    "Can be used after profile_plates.py has been run.\n"
+                    "Reads configuration from `config.yaml`.")
+    parser.add_argument("-p", "--plate",
+                        help="Process single plates instead of all data. "
+                             "Provide single plate name or comma-separated list.")
+    parser.add_argument("-s", "--showavail", action="store_true",
+                        help="Show available plates.")
 
     args = parser.parse_args()
-    sep = "\t"
-    if args.sep is not None:
-        sep = args.sep
-    if args.type is None:
-        args.type = "median"
-    print("* aggregation type set to", args.type)
-    err = False
-    reason = ""
-    if not op.isdir(args.input_dir):
-        args.input_dir = args.input_dir + "_output"
-        if not op.isdir(args.input_dir):
-            err = True
-            reason = "Input dir {} does not exist.".format(args.input_dir)
 
-    if err:
-        print(reason)
-        usage()
+    print("Plate:    ", args.plate)
 
-    aggregate(args.input_dir, agg_type=args.type, sep=sep)
+    if args.showavail:
+        cpt.show_available_plates()
+    else:
+        create_reports(plates=args.plate)
