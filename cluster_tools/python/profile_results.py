@@ -18,6 +18,7 @@ Plate names need to follow this scheme:
 
 import argparse
 import sys
+# import gc
 import os.path as op
 # from collections import Counter
 
@@ -84,6 +85,7 @@ def profile_plates(plates=None, tasks=None):
             # ds_plate.write_csv(op.join(cp_config["Dirs"]["DataDir"], "tmp_batch.tsv"),
             #                    parameters=cpp.FINAL_PARAMETERS)
             ds_plate.update_datastore(write=True)
+
 
         print("\nPHASE 2: Extracting References...")
         cpp.extract_references()

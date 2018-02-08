@@ -71,8 +71,10 @@ Cutoffs:
     LimitSimilarityH: 75
     LimitSimilarityL: 50
 
-Otions:
-    InPlace: True  # whether to modifiy DataFrames inplace or not.
+Options:
+    InPlace: True    # whether to modifiy DataFrames inplace or not.
+    ChunkSize: 4000  # Dask chunksize
+    NPartitions: 10  # Dask npartitions
 
 Parameters:
     - Median_Cells_AreaShape_Area

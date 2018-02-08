@@ -40,6 +40,8 @@ LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
 LIMIT_CELL_COUNT_L = cp_config["Cutoffs"]["LimitCellCountL"]
 LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
 INPLACE = cp_config["Options"]["InPlace"]
+CHUNKSIZE = int(cp_config["Options"]["ChunkSize"])
+NPARTITIONS = int(cp_config["Options"]["NPartitions"])
 
 try:
     from misc_tools import apl_tools
@@ -218,7 +220,10 @@ class DataSet():
         if parameters is None:
             parameters = list(self.data.columns)
         result = self.keep_cols(parameters)
-        result.data.to_csv(fn, sep=sep, index=False)
+        if self.is_dask():
+            result.data.to_csv(fn, sep=sep, index=False, chunksize=CHUNKSIZE)
+        else:
+            result.data.to_csv(fn, sep=sep, index=False)
         result.print_log("write csv")
 
     def write_pkl(self, fn):
@@ -573,7 +578,7 @@ def load_resource(resource, force=False, mode="cpd", limit_cols=True):
                 SIM_REFS = dd.read_csv(srp, sep="\t")
             except (FileNotFoundError, OSError):
                 print("  * SIM_REFS not found, creating new one.")
-                SIM_REFS = dd.from_pandas(pd.DataFrame(), npartitions=1)
+                SIM_REFS = pd.DataFrame()
     elif "ref" in res:
         if force or "REFERENCES" not in glbls:
             global REFERENCES
@@ -621,7 +626,7 @@ def load_resource(resource, force=False, mode="cpd", limit_cols=True):
                     cp_config["Paths"]["DatastorePath"], sep="\t")
             except (FileNotFoundError, OSError):
                 print("  * DATASTORE not found, creating new one.")
-                DATASTORE = dd.from_pandas(pd.DataFrame(), npartitions=1)
+                DATASTORE = pd.DataFrame()
     elif "layout" in res:
         if force or "LAYOUTS" not in glbls:
             global LAYOUTS
@@ -732,11 +737,28 @@ def join_layout_1536(df, plate, quadrant=""):
     return result
 
 
+# def save_ds_tmp(df, fn):
+#     df.to_csv(fn, sep="\t", index=False, chunksize=CHUNKSIZE)
+#     result = dd.read_csv(fn, sep="\t")
+#     return result
+
+
 def write_datastore():
+    tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
+    assert len(tmp_dir) > 0, "tmp_dir may not be empty."
+    cpt.create_dirs(tmp_dir)
+    tmp_file = op.join(tmp_dir, "ds_tmp-*.tsv")
+
     ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
     df = DATASTORE[ds_cols]
     # df = df.sort_values("Well_Id")
+    if is_pandas(df):
+        df = dd.from_pandas(df, npartitions=NPARTITIONS)
+    df.to_csv(tmp_file, index=False, sep="\t")
+    df = dd.read_csv(tmp_file, sep="\t")
+    df = df.repartition(npartitions=NPARTITIONS, force=True)
+    print("  * number of partitions:", df.npartitions)
     df.to_csv(cp_config["Paths"]["DatastorePath"], index=False, sep="\t")
     print_log(df, "write datastore")
 
@@ -745,14 +767,19 @@ def update_datastore(df, on="Well_Id", write=False):
     """df is a Pandas DataFrame"""
     assert is_pandas(df), "df has to be a Pandas DataFrame."
     global DATASTORE
-    load_resource("DATASTORE")
+    load_resource("DATASTORE", force=True)
+    ds = DATASTORE
     df2 = df.copy()
     ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
     df2 = df2[ds_cols]
-    DATASTORE = dd.concat([DATASTORE, df2], interleave_partitions=True)
+    if is_pandas(ds):
+        ds = pd.concat([ds, df2])
+    else:
+        ds = dd.concat([ds, df2], interleave_partitions=True)
     rem = "" if write else "write is off"
-    DATASTORE = DATASTORE.drop_duplicates(subset=on, keep="last")
+    ds = ds.drop_duplicates(subset=on, keep="last")
+    DATASTORE = ds
     if write:
         write_datastore()
     print_log(df2, "update datastore", rem)
@@ -1162,7 +1189,10 @@ def write_sim_refs(mode="cpd"):
     SIM_REFS = SIM_REFS[keep]
     sim_refs = SIM_REFS
     # the resource should be loaded at this point
-    sim_refs.to_csv(sim_fn, sep="\t", index=False)
+    if is_dask(sim_refs):
+        sim_refs.to_csv(sim_fn, sep="\t", index=False, chunksize=CHUNKSIZE)
+    else:
+        sim_refs.to_csv(sim_fn, sep="\t", index=False)
     # df = sim_refs.sort_values("Similarity", ascending=False)
     # df = df.drop_duplicates(subset="Well_Id", keep="first")
 
@@ -1185,7 +1215,9 @@ def save_sim_tmp(df_list, fn):
     result = dd.concat(df_list, interleave_partitions=True)
     result = result.drop_duplicates(
         subset=["Well_Id", "Ref_Id"], keep="last")
-    result.to_csv(fn, sep="\t", index=False)
+    if is_pandas(result):
+        result = dd.from_pandas(result, npartitions=NPARTITIONS)
+    result.to_csv(fn, sep="\t", index=False)  # , chunksize=CHUNKSIZE)
     result = dd.read_csv(fn, sep="\t", dtype={"Smiles": np.object})
     return result
 
