@@ -432,9 +432,9 @@ class DataSet():
         This method does not return anything, it just writes the result to file."""
         update_similar_refs(self.data, write=write)
 
-    def update_datastore(self, write=True):
+    def update_datastore(self):
         """Update the DataStore with the current DataFrame."""
-        update_datastore(self.data, write=write)
+        update_datastore(self.data)
 
     def find_similar(self, act_profile, cutoff=0.5, max_num=5):
         """Filter the dataframe for activity profiles similar to the given one.
@@ -542,6 +542,32 @@ def clear_resources():
         print("* deleted resource: LAYOUTS")
     except NameError:
         pass
+
+
+def read_resource(res, mode="cpd"):
+    res = res.lower()
+    if "sim" in res:
+        print("  - reading resource:                      (SIM_REFS)")
+        if "ext" in mode.lower():
+            srp = cp_config["Paths"]["SimRefsExtPath"]
+        else:
+            srp = cp_config["Paths"]["SimRefsPath"]
+        try:
+            result = dd.read_csv(srp, sep="\t")
+        except (FileNotFoundError, OSError):
+            print("  * SIM_REFS not found, creating new one.")
+            result = pd.DataFrame()
+    elif "datast" in res:
+        print("  - reading resource:                      (DATASTORE)")
+        try:
+            result = dd.read_csv(cp_config["Paths"]["DatastorePath"], sep="\t")
+        except (FileNotFoundError, OSError):
+            print("  * DATASTORE not found, creating new one.")
+            result = pd.DataFrame()
+    else:
+        print("  * Resource {} not found, creating new one.".format(res.upper()))
+        result = pd.DataFrame()
+    return result
 
 
 def load_resource(resource, force=False, mode="cpd", limit_cols=True):
@@ -743,7 +769,7 @@ def join_layout_1536(df, plate, quadrant=""):
 #     return result
 
 
-def write_datastore():
+def write_datastore(ds):
     tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
     assert len(tmp_dir) > 0, "tmp_dir may not be empty."
     cpt.create_dirs(tmp_dir)
@@ -751,24 +777,22 @@ def write_datastore():
 
     ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
-    df = DATASTORE[ds_cols]
+    df = ds[ds_cols]
     # df = df.sort_values("Well_Id")
     if is_pandas(df):
         df = dd.from_pandas(df, npartitions=NPARTITIONS)
+    df = df.repartition(npartitions=NPARTITIONS, force=True)
+    print("    - number of partitions:", df.npartitions)
     df.to_csv(tmp_file, index=False, sep="\t")
     df = dd.read_csv(tmp_file, sep="\t")
-    df = df.repartition(npartitions=NPARTITIONS, force=True)
-    print("  * number of partitions:", df.npartitions)
     df.to_csv(cp_config["Paths"]["DatastorePath"], index=False, sep="\t")
     print_log(df, "write datastore")
 
 
-def update_datastore(df, on="Well_Id", write=False):
+def update_datastore(df, on="Well_Id"):
     """df is a Pandas DataFrame"""
     assert is_pandas(df), "df has to be a Pandas DataFrame."
-    global DATASTORE
-    load_resource("DATASTORE", force=True)
-    ds = DATASTORE
+    ds = read_resource("DATASTORE")
     df2 = df.copy()
     ds_cols = cp_config["Paths"]["DatastoreCols"].copy()
     ds_cols.extend(ACT_PROF_PARAMETERS)
@@ -777,12 +801,9 @@ def update_datastore(df, on="Well_Id", write=False):
         ds = pd.concat([ds, df2])
     else:
         ds = dd.concat([ds, df2], interleave_partitions=True)
-    rem = "" if write else "write is off"
     ds = ds.drop_duplicates(subset=on, keep="last")
-    DATASTORE = ds
-    if write:
-        write_datastore()
-    print_log(df2, "update datastore", rem)
+    write_datastore(ds)
+    print_log(df2, "update datastore")
 
 
 def invert_how(how):
@@ -1175,9 +1196,8 @@ def mol_from_smiles(smi):
     return mol
 
 
-def write_sim_refs(mode="cpd"):
+def write_sim_refs(sim_refs, mode="cpd"):
     """Export of sim_refs as pkl and as tsv for PPilot"""
-    global SIM_REFS
     keep = ["Compound_Id", "Well_Id", "Is_Ref", "Ref_Id", "RefCpd_Id",
             "Similarity", "Tanimoto", "Times_Found"]
     if "ext" in mode.lower():
@@ -1186,13 +1206,8 @@ def write_sim_refs(mode="cpd"):
         sim_fn = cp_config["Paths"]["SimRefsPath"]
     sim_fn_pp = op.splitext(sim_fn)[0] + "_pp.tsv"
     sim_fn_pp = sim_fn_pp.replace("-*", "")  # remove Dask naming scheme
-    SIM_REFS = SIM_REFS[keep]
-    sim_refs = SIM_REFS
-    # the resource should be loaded at this point
-    if is_dask(sim_refs):
-        sim_refs.to_csv(sim_fn, sep="\t", index=False, chunksize=CHUNKSIZE)
-    else:
-        sim_refs.to_csv(sim_fn, sep="\t", index=False)
+    sim_refs = sim_refs[keep]
+    sim_refs.to_csv(sim_fn, sep="\t", index=False)
     # df = sim_refs.sort_values("Similarity", ascending=False)
     # df = df.drop_duplicates(subset="Well_Id", keep="first")
 
@@ -1211,18 +1226,24 @@ def write_sim_refs(mode="cpd"):
     print("* {:22s} ({:5d} |  --  )".format("write sim_refs", len(sim_refs)))
 
 
-def save_sim_tmp(df_list, fn):
-    result = dd.concat(df_list, interleave_partitions=True)
-    result = result.drop_duplicates(
-        subset=["Well_Id", "Ref_Id"], keep="last")
+def save_sim_tmp(df_list, fn, npart=NPARTITIONS):
+    if is_pandas(df_list[0]):  # empty Pandas DF
+        result = pd.concat(df_list[1:])
+    else:
+        result = dd.concat(df_list, interleave_partitions=True)
+    result = result.drop_duplicates(subset=["Well_Id", "Ref_Id"], keep="last")
     if is_pandas(result):
-        result = dd.from_pandas(result, npartitions=NPARTITIONS)
-    result.to_csv(fn, sep="\t", index=False)  # , chunksize=CHUNKSIZE)
+        result = dd.from_pandas(result, npartitions=npart)
+    else:
+        result = result.repartition(npartitions=npart, force=True)
+    print("    - number of partitions:", result.npartitions)
+    result.to_csv(fn, index=False, sep="\t")
     result = dd.read_csv(fn, sep="\t", dtype={"Smiles": np.object})
+    result.to_csv(cp_config["Paths"]["SimRefsPath"], index=False, sep="\t")
     return result
 
 
-def update_similar_refs(df=None, write=True):
+def update_similar_refs(df=None):
     """Find similar compounds in references and update the export file.
     The export file of the DataFrame object is in tsv format. In addition,
     another tsv file (or maybe JSON?) is written for use in PPilot.
@@ -1240,16 +1261,15 @@ def update_similar_refs(df=None, write=True):
     if df is None:
         load_resource("DATASTORE")
         df = DATASTORE
-    global SIM_REFS
     load_resource("REFERENCES")
-    load_resource("SIM_REFS", force=True)
+    sim_refs = read_resource("SIM_REFS")
     df_refs = REFERENCES
     tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
     assert len(tmp_dir) > 0, "tmp_dir may not be empty."
     cpt.create_dirs(tmp_dir)
     cpt.empty_dir(tmp_dir)
     tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
-    sim_refs = drop_cols(SIM_REFS, "Times_Found")
+    sim_refs = drop_cols(sim_refs, "Times_Found")
     ctr = cpt.Summary()
     rec_ctr = 0
     update_lst = []
@@ -1285,7 +1305,8 @@ def update_similar_refs(df=None, write=True):
                 similar["Tanimoto"] = np.nan
             update_lst.append(similar)
             if rec_ctr % 250 == 0:
-                sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file)
+                npart = rec_ctr // 5000 + 1
+                sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file, npart=npart)
                 update_lst = []
                 save_needed = False
 
@@ -1311,13 +1332,8 @@ def update_similar_refs(df=None, write=True):
     sim_refs = sim_refs.merge(tmp, on="Ref_Id", how="left")
     sim_refs = sim_refs.fillna(0)
     sim_refs["Times_Found"] = sim_refs["Times_Found"].astype(int)
-    SIM_REFS = sim_refs
-    if write:
-        # with write=False, the writing can be deferred to the end of the processing pipeline,
-        # but has to be done manually, then.
-        write_sim_refs()
-    rem = "" if write else "write is off"
-    print_log(df, "update similar", rem)
+    write_sim_refs(sim_refs)
+    print_log(df, "update similar")
 
 
 def well_id_similarity(df1, well_id1, df2, well_id2):

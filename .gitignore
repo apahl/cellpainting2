@@ -7,7 +7,7 @@ cellpainting/test.js
 cellpainting/temp.py
 cellpainting/nim_ext.so
 notebooks/.ipynb_checkpoints/
-cluster_tools/python/test_*
+cluster_tools/python/test*
 *.pkl
 *.png
 *.mrv

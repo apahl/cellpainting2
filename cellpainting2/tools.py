@@ -12,6 +12,7 @@ Helper Tools acting on individual data..
 
 import os
 import os.path as op
+import sys
 import glob
 from collections import Counter, namedtuple
 import yaml
@@ -91,6 +92,7 @@ class Summary(Counter):
         if not final:
             result = result + '\033[{}A\r'.format(keys_len)
         print(result, end="")
+        sys.stdout.flush()
 
 
 def profile_sim(current, reference):

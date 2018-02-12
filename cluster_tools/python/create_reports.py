@@ -8,6 +8,7 @@ Aggregate CellProfiler Results
 *Created on Thu Aug 22 12:00 2017 by A. Pahl*"""
 
 
+import sys
 import argparse
 import os.path as op
 # from collections import Counter
@@ -32,7 +33,6 @@ def create_reports(plates=None):
         plates = plates.split(",")
     print("\nThe following plates will be processed:")
     print(plates)
-
     cpp.load_resource("DATASTORE")
     ds = cpp.DATASTORE
     for plate_full_name in plates:
@@ -56,17 +56,41 @@ if __name__ == "__main__":
                     "Writes the reports into the dir specified in config.\n"
                     "Can be used after profile_plates.py has been run.\n"
                     "Reads configuration from `config.yaml`.")
-    parser.add_argument("-p", "--plate",
+    parser.add_argument("-p", "--plates",
                         help="Process single plates instead of all data. "
                              "Provide single plate name or comma-separated list.")
     parser.add_argument("-s", "--showavail", action="store_true",
                         help="Show available plates.")
+    parser.add_argument("-t", "--taskid", type=int,
+                        help="Slurm array task Id. Requires `plates` to be given "
+                             "and `ntasks` to be also set.")
+    parser.add_argument("-n", "--ntasks", type=int,
+                        help="Number of Slurm array tasks in total.")
 
     args = parser.parse_args()
 
-    print("Plate:    ", args.plate)
+    print("Plates:    ", args.plates)
 
     if args.showavail:
         cpt.show_available_plates()
-    else:
-        create_reports(plates=args.plate)
+        sys.exit(0)
+
+    if args.taskid is not None:
+        if args.ntasks is None:
+            print("ntasks needs to be given.")
+            sys.exit(1)
+        if args.plates is None:
+            print("plates needs to be given.")
+            sys.exit(1)
+
+        taskid = args.taskid
+        ntasks = args.ntasks
+        plates = args.plates
+        plates = plates.split(",")
+        nplates = len(plates)
+        lbound = int((taskid - 1) / ntasks * nplates)
+        ubound = int(taskid / ntasks * nplates)
+        plates_slice = plates[lbound:ubound]
+        args.plates = ",".join(plates_slice)
+
+    create_reports(plates=args.plates)

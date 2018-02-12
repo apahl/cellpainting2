@@ -38,9 +38,8 @@ def usage():
     sys.exit(1)
 
 
-def flush_print(txt):
-    txt = txt + "\r"
-    print(txt)
+def flush_print(txt, end="\n"):
+    print(txt, end=end)
     sys.stdout.flush()
 
 
@@ -58,12 +57,15 @@ def profile_plates(plates=None, tasks=None):
     print(plates)
 
     if tasks is None:
-        print("\nPHASE 1: Processing Data...")
+        plate_ctr = 0
+        flush_print("\nPHASE 1: Processing Data...")
         for plate_full_name in plates:
             plate = cpt.split_plate_name(plate_full_name)  # a namedtuple
             if plate is None:
                 raise ValueError("Plate {} does not follow the spec.".format(plate_full_name))
             flush_print("\nProcessing plate {}-{} ...".format(plate.date, plate.name))
+            plate_ctr += 1
+            cpp.NPARTITIONS = plate_ctr // 8 + 1
             src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
             src_dir = src_templ.format(plate.date, plate.name)
             #                                                   process as Pandas
@@ -84,14 +86,14 @@ def profile_plates(plates=None, tasks=None):
             ds_plate = ds_plate.join_batch_data()
             # ds_plate.write_csv(op.join(cp_config["Dirs"]["DataDir"], "tmp_batch.tsv"),
             #                    parameters=cpp.FINAL_PARAMETERS)
-            ds_plate.update_datastore(write=True)
+            ds_plate.update_datastore()
+            # if plate_ctr > 24: return  # for memory usage debugging
 
-
-        print("\nPHASE 2: Extracting References...")
+        flush_print("\nPHASE 2: Extracting References...")
         cpp.extract_references()
 
     if tasks is None or tasks == "sim":
-        print("\nPHASE 3: Finding Similar References...")
+        flush_print("\nPHASE 3: Finding Similar References...")
         cpp.update_similar_refs()
 
 

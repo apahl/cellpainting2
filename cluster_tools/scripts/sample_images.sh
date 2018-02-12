@@ -3,8 +3,8 @@
 set -e
 
 PLATE=${1%/}
-SRC_DIR=/ptmp/allg/apahl/cp/queue/$PLATE
-DEST_DIR=/ptmp/allg/apahl/cp/output/${PLATE}_output
+SRC_DIR=/ptmp/apahl/cp/queue/$PLATE
+DEST_DIR=/ptmp/apahl/cp/output/${PLATE}
 
 if [ -z "$SRC_DIR" ] || [ ! -d "$SRC_DIR" ]; then
   echo Source Dir $SRC_DIR does not exist
