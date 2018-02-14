@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-core=1
 # Memory usage of the job [MB]
-#SBATCH --mem=3072
+#SBATCH --mem=4096
 # #SBATCH --time=24:00:00
 
 ORIG_DIR=$(pwd)
@@ -22,6 +22,8 @@ if [[ $SLURM_ARRAY_TASK_ID == 1 ]]; then
   echo "`date +"%Y%m%d %H:%M"`  $SLURM_JOB_ID: CreateRp started..." >> $ORIG_DIR/job_info.txt
   # remove existing report dir, start fresh
   rm -rf /ptmp/apahl/cp/profiles/reports
+else
+  sleep 120
 fi
 
 PLATES=$(get_plates)

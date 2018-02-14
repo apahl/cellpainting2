@@ -564,6 +564,9 @@ def read_resource(res, mode="cpd"):
         except (FileNotFoundError, OSError):
             print("  * DATASTORE not found, creating new one.")
             result = pd.DataFrame()
+    elif "anno" in res:
+        print("  - reading resource:                      (ANNOTATIONS)")
+        result = dd.read_csv(cp_config["Paths"]["AnnotationsPath"], sep="\t")
     else:
         print("  * Resource {} not found, creating new one.".format(res.upper()))
         result = pd.DataFrame()
@@ -590,8 +593,7 @@ def load_resource(resource, force=False, mode="cpd", limit_cols=True):
         if force or "ANNOTATIONS" not in glbls:
             global ANNOTATIONS
             print("  - loading resource:                      (ANNOTATIONS)")
-            ANNOTATIONS = dd.read_csv(
-                cp_config["Paths"]["AnnotationsPath"], sep="\t")
+            ANNOTATIONS = dd.read_csv(cp_config["Paths"]["AnnotationsPath"], sep="\t")
     elif "sim" in res:
         if force or "SIM_REFS" not in glbls:
             global SIM_REFS
@@ -1226,31 +1228,59 @@ def write_sim_refs(sim_refs, mode="cpd"):
     print("* {:22s} ({:5d} |  --  )".format("write sim_refs", len(sim_refs)))
 
 
-def save_sim_tmp(df_list, fn, npart=NPARTITIONS):
-    if is_pandas(df_list[0]):  # empty Pandas DF
+def save_sim_tmp(df_list, fn, npart=NPARTITIONS, inparallel=False):
+    """When update_similar is run `inparallel`, the indivual sim_ref files
+    will be Pandas DFs, not Dask."""
+    if inparallel:
+        result = pd.concat(df_list)
+    elif is_pandas(df_list[0]):  # empty Pandas DF
         result = pd.concat(df_list[1:])
     else:
         result = dd.concat(df_list, interleave_partitions=True)
     result = result.drop_duplicates(subset=["Well_Id", "Ref_Id"], keep="last")
-    if is_pandas(result):
-        result = dd.from_pandas(result, npartitions=npart)
-    else:
-        result = result.repartition(npartitions=npart, force=True)
-    print("    - number of partitions:", result.npartitions)
+    if not inparallel:  # Dask repartitioning
+        if is_pandas(result):
+            result = dd.from_pandas(result, npartitions=npart)
+        else:
+            result = result.repartition(npartitions=npart, force=True)
+            print("    - number of partitions:", result.npartitions)
     result.to_csv(fn, index=False, sep="\t")
-    result = dd.read_csv(fn, sep="\t", dtype={"Smiles": np.object})
+    if inparallel:
+        result = pd.read_csv(fn, sep="\t", dtype={"Smiles": np.object})
+    else:
+        result = dd.read_csv(fn, sep="\t", dtype={"Smiles": np.object})
     result.to_csv(cp_config["Paths"]["SimRefsPath"], index=False, sep="\t")
     return result
 
 
-def update_similar_refs(df=None):
+def sim_times_found(tmp_file):
+    # Assign the number of times a reference was found by a research compound
+    # SIM_REFS = drop_cols(SIM_REFS, ["Times_Found"])
+    sim_refs = dd.read_csv(tmp_file, sep="\t")
+    tmp = dd.read_csv(tmp_file, sep="\t")
+    tmp = tmp[~tmp["Is_Ref"]]
+    tmp = tmp.groupby(by="Ref_Id").count().reset_index()
+    # "Compound_Id" is just one field that contains the correct count:
+    tmp = tmp[["Ref_Id", "Compound_Id"]]
+    tmp = tmp.rename(columns={"Compound_Id": "Times_Found"})
+    if is_dask(tmp):
+        tmp = tmp.compute()
+    sim_refs = sim_refs.merge(tmp, on="Ref_Id", how="left")
+    sim_refs = sim_refs.fillna(0)
+    sim_refs["Times_Found"] = sim_refs["Times_Found"].astype(int)
+    write_sim_refs(sim_refs)
+
+
+def update_similar_refs(df=None, inparallel=False, taskid=None):
     """Find similar compounds in references and update the export file.
     The export file of the DataFrame object is in tsv format. In addition,
     another tsv file (or maybe JSON?) is written for use in PPilot.
     `mode` can be "cpd" or "ref". if `sim_refs`is not None,
     it has to be a dict of the correct format.
     With `write=False`, the writing of the file can be deferred to the end of the processing pipeline,
-    but has to be done manually, then, with `write_sim_refs()`."""
+    but has to be done manually, then, with `write_sim_refs()`
+    `inparallel` == True defers the times_found determination,
+    then taskid has to be an integer."""
     def _chem_sim(mol_fp, query_smi):
         query = mol_from_smiles(query_smi)
         if len(query.GetAtoms()) > 1:
@@ -1258,22 +1288,30 @@ def update_similar_refs(df=None):
             return round(DataStructs.TanimotoSimilarity(mol_fp, query_fp), 3)
         return np.nan
 
+    if inparallel:
+        assert isinstance(taskid, int), "When `inparallel`, `taskid` has to be int."
     if df is None:
         load_resource("DATASTORE")
         df = DATASTORE
     load_resource("REFERENCES")
-    sim_refs = read_resource("SIM_REFS")
-    df_refs = REFERENCES
     tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
     assert len(tmp_dir) > 0, "tmp_dir may not be empty."
     cpt.create_dirs(tmp_dir)
     cpt.empty_dir(tmp_dir)
-    tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
+    if not inparallel:
+        sim_refs = read_resource("SIM_REFS")
+        tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
+    else:
+
+        sim_refs = pd.DataFrame()
+        tmp_file = op.join(tmp_dir, "sim_tmp-{}.tsv".format(taskid))
+    df_refs = REFERENCES
     sim_refs = drop_cols(sim_refs, "Times_Found")
     ctr = cpt.Summary()
     rec_ctr = 0
     update_lst = []
     save_needed = False
+    npart = 1
     for _, rec in df.iterrows():
         if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Toxic"]:
             # no similarites for low active or toxic compounds
@@ -1306,7 +1344,8 @@ def update_similar_refs(df=None):
             update_lst.append(similar)
             if rec_ctr % 250 == 0:
                 npart = rec_ctr // 5000 + 1
-                sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file, npart=npart)
+                sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file,
+                                        npart=npart, inparallel=inparallel)
                 update_lst = []
                 save_needed = False
 
@@ -1317,22 +1356,10 @@ def update_similar_refs(df=None):
     ctr.print(final=True)
 
     if save_needed:
-        sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file)
-
-    # Assign the number of times a reference was found by a research compound
-    # SIM_REFS = drop_cols(SIM_REFS, ["Times_Found"])
-    tmp = dd.read_csv(tmp_file, sep="\t")
-    tmp = tmp[~tmp["Is_Ref"]]
-    tmp = tmp.groupby(by="Ref_Id").count().reset_index()
-    # "Compound_Id" is just one field that contains the correct count:
-    tmp = tmp[["Ref_Id", "Compound_Id"]]
-    tmp = tmp.rename(columns={"Compound_Id": "Times_Found"})
-    if is_dask(tmp):
-        tmp = tmp.compute()
-    sim_refs = sim_refs.merge(tmp, on="Ref_Id", how="left")
-    sim_refs = sim_refs.fillna(0)
-    sim_refs["Times_Found"] = sim_refs["Times_Found"].astype(int)
-    write_sim_refs(sim_refs)
+        sim_refs = save_sim_tmp([sim_refs] + update_lst, tmp_file,
+                                npart=npart, inparallel=inparallel)
+    if not inparallel:
+        sim_times_found(tmp_file)
     print_log(df, "update similar")
 
 
