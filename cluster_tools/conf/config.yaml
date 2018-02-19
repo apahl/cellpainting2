@@ -33,6 +33,7 @@ Paths:
     SimRefsPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs-*.tsv
     SimRefsExtPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs_ext-*.tsv
     DatastorePath: /home/pahl/comas/notebooks/projects/painting2/data/cp_datastore-*.tsv
+    DatastorePPPath: /home/pahl/comas/notebooks/projects/painting2/data/cp_datastore_pp.tsv
     DatastoreCols:
         - Compound_Id
         - Container_Id

@@ -62,6 +62,8 @@ FINAL_PARAMETERS = ['Metadata_Plate', 'Metadata_Well', 'plateColumn', 'plateRow'
                     "Toxic", "Is_Ref",
                     "Rel_Cell_Count", "Known_Act", "Trivial_Name", 'WellType', 'Conc_uM',
                     "Activity", "Plate", "Smiles"]
+DATASTORE_PP = ["Compound_Id", "Well_Id", "Producer", "Is_Ref", "Pure_Flag",
+                "Toxic", "Rel_Cell_Count", 'Conc_uM', "Activity", "Plate", "Smiles"]
 DROP_FROM_NUMBERS = ['plateColumn', 'plateRow', 'Conc_uM', "Compound_Id"]
 DROP_GLOBAL = {"PathName_CellOutlines", "URL_CellOutlines", 'FileName_CellOutlines',
                'ImageNumber', 'Metadata_Site', 'Metadata_Site_1', 'Metadata_Site_2'}  # set literal
@@ -922,6 +924,14 @@ def extract_references(df=None):
     print_log(df_anno, "write annotations")
 
 
+def prepare_pp_datastore():
+    """Prepare a single file version of the DataStore for PPilot."""
+    ds = read_resource("DATASTORE")
+    ds = ds[DATASTORE_PP]
+    ds = ds.compute()
+    ds.to_csv(cp_config["Paths"]["DatastorePPPath"], sep="\t", index=False)
+
+
 def metadata(df):
     """Returns a list of the those parameters in the DataFrame that are NOT CellProfiler measurements."""
     parameters = [k for k in df.keys()
@@ -1039,7 +1049,7 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
     def _log2_mad(x, median, mad):
         if mad < 1E-4:
             mad = 1E-4
-        if abs(x - median) <= (1.5 * mad):
+        if abs(x - median) <= (3 * mad):
             return 0.0
         if x >= median:
             l2f = math.log2(((x - median) / mad))
@@ -1288,8 +1298,11 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
             return round(DataStructs.TanimotoSimilarity(mol_fp, query_fp), 3)
         return np.nan
 
+    global cp_config
     if inparallel:
         assert isinstance(taskid, int), "When `inparallel`, `taskid` has to be int."
+        cp_config["Paths"]["SimRefsPath"] = cp_config["Paths"]["SimRefsPath"].replace(
+            "*", str(taskid))
     if df is None:
         load_resource("DATASTORE")
         df = DATASTORE

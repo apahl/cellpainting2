@@ -15,14 +15,13 @@ set -e
 ORIG_DIR=$(pwd)
 
 # remove existing data, start fresh
-# rm -rf /ptmp/apahl/cp/profiles/data
-# mkdir -p /ptmp/apahl/cp/profiles/data
-# rm -rf /ptmp/apahl/cp/profiles/reports
+rm -rf /ptmp/apahl/cp/profiles/data
+mkdir -p /ptmp/apahl/cp/profiles/data
+rm -rf /ptmp/apahl/cp/profiles/reports
 
 source activate chem
 sleep 5
-profile_results -t sim
-# create_reports
+profile_results
 source deactivate
 
 echo "`date +"%Y%m%d %H:%M"`  $SLURM_JOB_ID: ProfRes done."

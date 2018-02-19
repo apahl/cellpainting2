@@ -76,25 +76,17 @@ def profile_plates(plates=None, tasks=None):
             ds_plate.well_type_from_position()
 
             ds_plate.flag_toxic()
-            # ds_plate.write_csv(op.join(cp_config["Dirs"]["DataDir"], "tmp_toxic.tsv"),
-            #                    parameters=cpp.FINAL_PARAMETERS)
             ds_plate = ds_plate.activity_profile(act_cutoff=1.58)
             ds_plate = ds_plate.join_layout_1536(plate.name)
             ds_plate.data["Plate"] = "{}-{}".format(plate.date, plate.name)
 
             ds_plate = ds_plate.join_smiles()
             ds_plate = ds_plate.join_batch_data()
-            # ds_plate.write_csv(op.join(cp_config["Dirs"]["DataDir"], "tmp_batch.tsv"),
-            #                    parameters=cpp.FINAL_PARAMETERS)
             ds_plate.update_datastore()
-            # if plate_ctr > 24: return  # for memory usage debugging
 
         flush_print("\nPHASE 2: Extracting References...")
         cpp.extract_references()
-
-    if tasks is None or tasks == "sim":
-        flush_print("\nPHASE 3: Finding Similar References...")
-        cpp.update_similar_refs()
+        cpp.prepare_pp_datastore()  # prepare a single file version of the DataStore for PPilot
 
 
 if __name__ == "__main__":

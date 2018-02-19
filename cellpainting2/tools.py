@@ -106,6 +106,16 @@ def profile_sim(current, reference):
     return result
 
 
+# def profile_sim(p1, p2):
+#     p_len = len(p1)
+#     assert p_len == len(p2), "profiles must be of same length!"
+#     matching = 0
+#     for idx in range(p_len):
+#         if (p1[idx] < 0 and p2[idx] < 0) or (p1[idx] > 0 and p2[idx] > 0):
+#             matching += 1
+#     return matching / p_len
+
+
 def split_plate_name(full_name, sep="-"):
     """Split the full platename into (date, plate).
     Returns a namedtuple or None, if the name spec is not met."""
