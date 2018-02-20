@@ -23,6 +23,7 @@ cp_config = cpt.load_config("config")
 ACT_PROF_PARAMETERS = cp_config["Parameters"]
 
 ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
+ACT_CUTOFF_PERC_H = cp_config["Cutoffs"]["ActCutoffPercH"]
 
 LIMIT_ACTIVITY_H = cp_config["Cutoffs"]["LimitActivityH"]
 LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
@@ -749,7 +750,7 @@ HIGHLIGHT_LEGEND = """
     <td class=noborder>Induction [%]:</td>
     <td bgcolor=§COL_GREEN>&ge; §LIMIT_ACTIVITY_H</td>
     <td bgcolor=§COL_YELLOW>&ge; §LIMIT_ACTIVITY_L</td>
-    <td bgcolor=§COL_RED>&lt; §LIMIT_ACTIVITY_L</td>
+    <td bgcolor=§COL_RED>&lt; §LIMIT_ACTIVITY_L or &gt; §ACT_CUTOFF_PERC_H</td>
 </tr>
 <tr>
     <td class=noborder>Highest Similarity<br>to a Reference [%]:</td>
@@ -779,6 +780,7 @@ d = {
     "TABLE_INTRO": TABLE_INTRO, "TABLE_EXTRO": TABLE_EXTRO,
     "COL_GREEN": COL_GREEN, "COL_YELLOW": COL_YELLOW, "COL_RED": COL_RED,
     "ACT_CUTOFF_PERC": ACT_CUTOFF_PERC,
+    "ACT_CUTOFF_PERC_H": ACT_CUTOFF_PERC_H,
     "LIMIT_ACTIVITY_H": LIMIT_ACTIVITY_H, "LIMIT_ACTIVITY_L": LIMIT_ACTIVITY_L,
     "LIMIT_CELL_COUNT_H": LIMIT_CELL_COUNT_H, "LIMIT_CELL_COUNT_L": LIMIT_CELL_COUNT_L,
     "LIMIT_SIMILARITY_H": LIMIT_SIMILARITY_H, "LIMIT_SIMILARITY_L": LIMIT_SIMILARITY_L

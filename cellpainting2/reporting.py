@@ -39,7 +39,9 @@ if IPYTHON:
 ACT_PROF_PARAMETERS = cp_config["Parameters"]
 
 ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
+ACT_CUTOFF_PERC_H = cp_config["Cutoffs"]["ActCutoffPercH"]
 ACT_CUTOFF_PERC_REF = cp_config["Cutoffs"]["ActCutoffPercRef"]
+ACT_CUTOFF_PERC_REF_H = cp_config["Cutoffs"]["ActCutoffPercRefH"]
 LIMIT_ACTIVITY_H = cp_config["Cutoffs"]["LimitActivityH"]
 LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
 LIMIT_CELL_COUNT_H = cp_config["Cutoffs"]["LimitCellCountH"]
@@ -239,6 +241,11 @@ def write_page(page, title="Report", fn="index.html", templ=cprt.HTML_INTRO):
 
 
 def assign_colors(rec):
+    if rec.get("Is_Ref", False):
+        act_cutoff_high = ACT_CUTOFF_PERC_H
+    else:
+        act_cutoff_high = ACT_CUTOFF_PERC_REF_H
+
     if "Toxic" in rec:
         if rec["Toxic"]:
             rec["Col_Toxic"] = cprt.COL_RED
@@ -266,7 +273,9 @@ def assign_colors(rec):
     else:
         rec["Col_Cell_Count"] = cprt.COL_RED
 
-    if rec["Activity"] >= LIMIT_ACTIVITY_H:
+    if rec["Activity"] > act_cutoff_high:
+        rec["Col_Act"] = cprt.COL_RED
+    elif rec["Activity"] >= LIMIT_ACTIVITY_H:
         rec["Col_Act"] = cprt.COL_GREEN
     elif rec["Activity"] >= LIMIT_ACTIVITY_L:
         rec["Col_Act"] = cprt.COL_YELLOW
@@ -294,10 +303,6 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
     detailed_cpds = []
     if isinstance(df, cpp.DataSet):
         df = df.data
-    if "ref" in mode:
-        act_cutoff = ACT_CUTOFF_PERC_REF
-    else:
-        act_cutoff = ACT_CUTOFF_PERC
     t = Template(cprt.OVERVIEW_TABLE_HEADER)
     if "int" in mode:
         tbl_header = t.substitute(sim_entity="to another Test Compound")
@@ -307,6 +312,12 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
     row_templ = Template(cprt.OVERVIEW_TABLE_ROW)
     idx = 0
     for _, rec in df.iterrows():
+        if rec.get("Is_Ref", False):
+            act_cutoff_low = ACT_CUTOFF_PERC
+            act_cutoff_high = ACT_CUTOFF_PERC_H
+        else:
+            act_cutoff_low = ACT_CUTOFF_PERC_REF
+            act_cutoff_high = ACT_CUTOFF_PERC_REF_H
         idx += 1
         well_id = rec["Well_Id"]
         mol = mol_from_smiles(rec.get("Smiles", "*"))
@@ -320,12 +331,12 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
         rec["Link"] = ""
         rec["Col_Sim"] = cprt.COL_WHITE
         has_details = True
-        if rec["Activity"] < act_cutoff:
+        if rec["Activity"] < act_cutoff_low:
             has_details = False
             rec["Act_Flag"] = "inactive"
         # print(rec)
         # similar references are searched for non-toxic compounds with an activity >= LIMIT_ACTIVITY_L
-        if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Toxic"]:
+        if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Activity"] > act_cutoff_high or rec["Toxic"]:
             similars_determined = False
         else:
             similars_determined = True
@@ -656,8 +667,9 @@ def detailed_report(rec, src_dir, ctrl_images):
             im, options='style="width: 250px;"')
         templ_dict["Img_{}_Ctrl".format(ch)] = ctrl_images[ch]
     if rec["Activity"] < LIMIT_ACTIVITY_L:
-        templ_dict["Ref_Table"] = "Because of low induction (&lt; {}%), no similarity was determined.".format(
-            LIMIT_ACTIVITY_L)
+        templ_dict["Ref_Table"] = "Because of low induction (&lt; {}%), no similarity was determined.".format(LIMIT_ACTIVITY_L)
+    elif rec["Activity"] > ACT_CUTOFF_PERC_H:
+        templ_dict["Ref_Table"] = "Because of high induction (&gt; {}%), no similarity was determined.".format(ACT_CUTOFF_PERC_H)
     elif rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
         templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
     else:
@@ -686,7 +698,7 @@ def detailed_report(rec, src_dir, ctrl_images):
 
 
 def full_report(df, src_dir, report_name="report", plate=None,
-                cutoff=0.6, act_cutoff=ACT_CUTOFF_PERC, highlight=False):
+                cutoff=0.6, highlight=False):
     report_full_path = op.join(cp_config["Dirs"]["ReportDir"], report_name)
     overview_fn = op.join(report_full_path, "index.html")
     date = time.strftime("%d-%m-%Y %H:%M", time.localtime())

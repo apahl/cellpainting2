@@ -63,8 +63,10 @@ ParameterHelp:
     Texture: MeasureTexture
 
 Cutoffs:
-    ActCutoffPerc: 0.5
-    ActCutoffPercRef: 0.5
+    ActCutoffPerc: 5.0
+    ActCutoffPercRef: 5.0
+    ActCutoffPercH: 90.0
+    ActCutoffPercRefH: 85.0
     LimitCellCountH: 75
     LimitCellCountL: 50
     LimitActivityH: 25
