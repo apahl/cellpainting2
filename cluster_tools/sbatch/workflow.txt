@@ -1,24 +1,28 @@
-$ sbatch ./cp_batch_96.sh <DATE>-<PLATE>
+PROCESSING & POST_PROCESSING
+    $ sbatch ./cp_batch_96.sh <DATE>-<PLATE>
+    $ sbatch --dependency=afterok:XXXXXXX ./post_process.sh <DATE>-<PLATE>
 
-    Are all COMAS exports on the cluster up to date?
-        - comas_batch_data.tsv
-        - comas_container_data.tsv
-        - comas_container.tsv
-        - comas_smiles_b64.tsv
-        - comas_smiles.tsv
-        - known_act.tsv
-        local:
-        $ cd ~/comas/share
-        $ rsync_cp comas_*.tsv draco:/ptmp/apahl/cp/profiles/resources/
-        $ rsync_cp known_act.tsv draco:/ptmp/apahl/cp/profiles/resources/
+PROFILING
+        Are all COMAS exports on the cluster up to date?
+            - comas_batch_data.tsv
+            - comas_container_data.tsv
+            - comas_container.tsv
+            - comas_smiles_b64.tsv
+            - comas_smiles.tsv
+            - known_act.tsv
+            local:
+            $ cd ~/comas/share
+            $ rsync_cp comas_*.tsv draco:/ptmp/apahl/cp/profiles/resources/
+            $ rsync_cp known_act.tsv draco:/ptmp/apahl/cp/profiles/resources/
 
-    Is the CellPainting module on the cluster up to date?
-        local:
-        $ cd ~/dev/python3
-        $ rsync_cp --exclude='.git' cellpainting2 draco:dev/python3/
+        Is the CellPainting module on the cluster up to date?
+            local:
+            $ cd ~/dev/python3
+            $ rsync_cp --exclude='.git' cellpainting2 draco:dev/python3/
 
 
-cluster:
-$ sbatch ./prof_res.sh
-$ sbatch --dependency=afterok:XXXXXXX ./find_similar.sh
-$ sbatch --dependency=afterok:XXXXXXX ./finalize_similar.sh
+    cluster:
+    $ sbatch ./prof_res.sh
+    $ sbatch --dependency=afterok:XXXXXXX ./find_similar.sh
+    $ sbatch --dependency=afterok:XXXXXXX ./finalize_similar.sh
+    $ sbatch --dependency=afterok:XXXXXXX ./create_rep.sh

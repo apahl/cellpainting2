@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #SBATCH --job-name=createrp
-#SBATCH --array=1-10
+#SBATCH --array=1-20
 #SBATCH --workdir=/ptmp/apahl/cp
 #SBATCH --output=/ptmp/apahl/cp/jobout/createrp_%A-%a.txt
 #SBATCH --error=/ptmp/apahl/cp/jobout/createrp_%A-%a.txt

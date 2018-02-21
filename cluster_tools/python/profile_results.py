@@ -63,9 +63,9 @@ def profile_plates(plates=None, tasks=None):
             plate = cpt.split_plate_name(plate_full_name)  # a namedtuple
             if plate is None:
                 raise ValueError("Plate {} does not follow the spec.".format(plate_full_name))
-            flush_print("\nProcessing plate {}-{} ...".format(plate.date, plate.name))
             plate_ctr += 1
             cpp.NPARTITIONS = plate_ctr // 8 + 1
+            flush_print("\nProcessing plate {:3d} / {:3d}: {}-{} ...".format(plate_ctr, len(plates), plate.date, plate.name))
             src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
             src_dir = src_templ.format(plate.date, plate.name)
             #                                                   process as Pandas

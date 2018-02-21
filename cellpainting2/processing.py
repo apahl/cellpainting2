@@ -605,12 +605,14 @@ def load_resource(resource, force=False, mode="cpd", limit_cols=True):
         if force or "SIM_REFS" not in glbls:
             global SIM_REFS
             print("  - loading resource:                      (SIM_REFS)")
+            # dtypes = {"Compound_Id": np.int64, "Well_Id": np.object, "Is_Ref": np.bool,
+            #           "RefCpd_Id": np.int64, "Similarity": np.float64}
             if "ext" in mode.lower():
                 srp = cp_config["Paths"]["SimRefsExtPath"]
             else:
                 srp = cp_config["Paths"]["SimRefsPath"]
             try:
-                SIM_REFS = dd.read_csv(srp, sep="\t")
+                SIM_REFS = dd.read_csv(srp, sep="\t")  # , dtype=dtypes)
             except (FileNotFoundError, OSError):
                 print("  * SIM_REFS not found, creating new one.")
                 SIM_REFS = pd.DataFrame()
@@ -1218,14 +1220,25 @@ def write_sim_refs(sim_refs, mode="cpd"):
     """Export of sim_refs as pkl and as tsv for PPilot"""
     keep = ["Compound_Id", "Well_Id", "Is_Ref", "Ref_Id", "RefCpd_Id",
             "Similarity", "Tanimoto", "Times_Found"]
+    # dtypes = {"Compound_Id": np.int64, "Well_Id": np.object, "Is_Ref": np.bool,
+    #           "RefCpd_Id": np.int64, "Similarity": np.float64}
+
     if "ext" in mode.lower():
         sim_fn = cp_config["Paths"]["SimRefsExtPath"]
     else:
         sim_fn = cp_config["Paths"]["SimRefsPath"]
+
+    # tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
+    # cpt.create_dirs(tmp_dir)
+    # cpt.empty_dir(tmp_dir)
+    # tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
+
     sim_fn_pp = op.splitext(sim_fn)[0] + "_pp.tsv"
     sim_fn_pp = sim_fn_pp.replace("-*", "")  # remove Dask naming scheme
-    sim_refs = sim_refs[keep]
-    sim_refs.to_csv(sim_fn, sep="\t", index=False)
+    sim_refs[keep].to_csv(sim_fn, sep="\t", index=False)
+    # sim_refs = dd.read_csv(tmp_file, sep="\t")
+    # sim_refs.to_csv(sim_fn, sep="\t", index=False)
+
     # df = sim_refs.sort_values("Similarity", ascending=False)
     # df = df.drop_duplicates(subset="Well_Id", keep="first")
 
@@ -1308,7 +1321,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
     if inparallel:
         assert isinstance(taskid, int), "When `inparallel`, `taskid` has to be int."
         cp_config["Paths"]["SimRefsPath"] = cp_config["Paths"]["SimRefsPath"].replace(
-            "*", str(taskid))
+            "*", str(taskid - 1))
     if df is None:
         load_resource("DATASTORE")
         df = DATASTORE
@@ -1321,9 +1334,8 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
         sim_refs = read_resource("SIM_REFS")
         tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
     else:
-
         sim_refs = pd.DataFrame()
-        tmp_file = op.join(tmp_dir, "sim_tmp-{}.tsv".format(taskid))
+        tmp_file = op.join(tmp_dir, "sim_tmp-{}.tsv".format(taskid - 1))
     df_refs = REFERENCES
     sim_refs = drop_cols(sim_refs, "Times_Found")
     ctr = cpt.Summary()

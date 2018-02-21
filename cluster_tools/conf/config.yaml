@@ -6,7 +6,7 @@ Dirs:
     PlatesDir: /home/pahl/comas/projects/painting/plates
     DataDir: /home/pahl/comas/notebooks/projects/painting2/data
     CompoundDir: /home/pahl/comas/share
-    ReportDir: /home/pahl/comas/share/cp2/reports
+    ReportDir: /home/pahl/comas/share/cp2/reports_test
 
 Paths:
     SmilesPath: /home/pahl/comas/share/comas_smiles.tsv    # tab-delim.

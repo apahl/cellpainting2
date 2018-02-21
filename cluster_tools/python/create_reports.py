@@ -35,6 +35,8 @@ def create_reports(plates=None):
     print(plates)
     cpp.load_resource("DATASTORE")
     ds = cpp.DATASTORE
+    cpp.load_resource("ANNOTATIONS")
+    ds_anno = cpp.ANNOTATIONS.compute()
     for plate_full_name in plates:
         plate = cpt.split_plate_name(plate_full_name)  # a namedtuple
         if plate is None:
@@ -44,6 +46,7 @@ def create_reports(plates=None):
         src_dir = src_templ.format(plate.date, plate.name)
 
         ds_profile = ds[ds["Plate"] == plate_full_name].compute()
+        ds_profile = ds_profile.merge(ds_anno, on="Compound_Id", how="left")
         ds_profile = ds_profile.sort_values(["Toxic", "Activity"],
                                             ascending=[True, False])
         cpr.full_report(ds_profile, src_dir, report_name=plate_full_name,

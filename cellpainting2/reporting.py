@@ -526,18 +526,18 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
 
     y_labels = []
     fp_list = []
-    max_val = 0
-    min_val = 0
+    max_val = 6                 # using a fixed color range now
+    min_val = -6
     for _, rec in df.iterrows():
         y_labels.append(rec[id_prop])
         fp = [rec[x] for x in ACT_PROF_PARAMETERS]
-        m_val = max(fp)
-        if m_val > max_val:
-            max_val = m_val
-        m_val = min(fp)
-        if m_val < min_val:
-            min_val = m_val
         fp_list.append(fp)
+        # m_val = max(fp)       # this was the calculation of the color range
+        # if m_val > max_val:
+        #     max_val = m_val
+        # m_val = min(fp)
+        # if m_val < min_val:
+        #     min_val = m_val
 
     # calc the colorbar range
     max_val = max(abs(min_val), max_val)
@@ -651,10 +651,10 @@ def detailed_report(rec, src_dir, ctrl_images):
     df_heat = pd.DataFrame([rec])
     templ_dict["Date"] = date
     templ_dict["mol_img"] = mol_img_tag(mol, options='class="cpd_image"')
-    if "Known_Act" in templ_dict:
+    if templ_dict["Is_Ref"]:
         if templ_dict["Trivial_Name"] == np.nan or templ_dict["Trivial_Name"] == "":
             templ_dict["Trivial_Name"] = "&mdash;"
-        if templ_dict["Trivial_Name"] == np.nan or templ_dict["Known_Act"] == "":
+        if templ_dict["Known_Act"] == np.nan or templ_dict["Known_Act"] == "":
             templ_dict["Known_Act"] = "&mdash;"
         t = Template(cprt.DETAILS_REF_ROW)
         templ_dict["Reference"] = t.substitute(templ_dict)
@@ -689,7 +689,7 @@ def detailed_report(rec, src_dir, ctrl_images):
         os.makedirs(cache_path, exist_ok=True)
     hm_fn = sanitize_filename(rec["Well_Id"] + ".txt")
     hm_cache = op.join(cache_path, hm_fn)
-    templ_dict["Heatmap"] = heat_mpl(df_heat, id_prop="Well_Id", cmap="bwr",
+    templ_dict["Heatmap"] = heat_mpl(df_heat, id_prop="Compound_Id", cmap="bwr",
                                      show=False, colorbar=True, plot_cache=hm_cache)
 
     t = Template(cprt.DETAILS_TEMPL)
