@@ -5,7 +5,7 @@
 #SBATCH --workdir=/ptmp/apahl/cp
 #SBATCH --output=/ptmp/apahl/cp/jobout/createrp_%A-%a.txt
 #SBATCH --error=/ptmp/apahl/cp/jobout/createrp_%A-%a.txt
-#SBATCH --partition=small
+#SBATCH --partition=short  # small
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-core=1
 # Memory usage of the job [MB]

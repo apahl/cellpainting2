@@ -40,6 +40,7 @@ ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
 ACT_CUTOFF_PERC_H = cp_config["Cutoffs"]["ActCutoffPercH"]
 ACT_CUTOFF_PERC_REF = cp_config["Cutoffs"]["ActCutoffPerc"]
 ACT_CUTOFF_PERC_REF_H = cp_config["Cutoffs"]["ActCutoffPercRefH"]
+OVERACT_H = cp_config["Cutoffs"]["OverActH"]
 
 LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
 LIMIT_CELL_COUNT_L = cp_config["Cutoffs"]["LimitCellCountL"]
@@ -64,10 +65,10 @@ except ImportError:
 
 FINAL_PARAMETERS = ['Metadata_Plate', 'Metadata_Well', 'plateColumn', 'plateRow',
                     "Compound_Id", 'Container_Id', "Well_Id", "Producer", "Pure_Flag",
-                    "Toxic", "Is_Ref",
+                    "Toxic", "Is_Ref", "OverAct",
                     "Rel_Cell_Count", "Known_Act", "Trivial_Name", 'WellType', 'Conc_uM',
                     "Activity", "Plate", "Smiles"]
-DATASTORE_PP = ["Compound_Id", "Well_Id", "Producer", "Is_Ref", "Pure_Flag",
+DATASTORE_PP = ["Compound_Id", "Well_Id", "Producer", "Is_Ref", "Pure_Flag", "OverAct",
                 "Toxic", "Rel_Cell_Count", 'Conc_uM', "Activity", "Plate", "Smiles"]
 DROP_FROM_NUMBERS = ['plateColumn', 'plateRow', 'Conc_uM', "Compound_Id"]
 DROP_GLOBAL = {"PathName_CellOutlines", "URL_CellOutlines", 'FileName_CellOutlines',
@@ -768,16 +769,10 @@ def join_layout_1536(df, plate, quadrant=""):
     result = LAYOUTS.merge(result, on=join_col, how="inner").compute()
     result = join_container(result)
     result.drop(join_col, axis=1, inplace=True)
-    result["Well_Id"] = result["Container_Id"] + "_" + result["Metadata_Well"]
+    result["Well_Id"] = result["Container_Id"] + "_" + result["Conc_uM"].map('{:04.1f}'.format)
     result = result.apply(pd.to_numeric, errors='ignore')
     print_log(result, "join layout 1536")
     return result
-
-
-# def save_ds_tmp(df, fn):
-#     df.to_csv(fn, sep="\t", index=False, chunksize=CHUNKSIZE)
-#     result = dd.read_csv(fn, sep="\t")
-#     return result
 
 
 def write_datastore(ds):
@@ -922,7 +917,8 @@ def extract_references(df=None):
         df = DATASTORE
     df_ref = df[(df["Is_Ref"]) & (~df["Toxic"]) & (df["Pure_Flag"] != "Fail") &
                 (df["Activity"] > ACT_CUTOFF_PERC_REF) &
-                (df["Activity"] < ACT_CUTOFF_PERC_REF_H)]
+                (df["Activity"] < ACT_CUTOFF_PERC_REF_H) &
+                (df["OverAct"] < OVERACT_H)]
     if is_dask(df_ref):
         df_ref = df_ref.compute()
     df_anno = join_annotations(df_ref)
@@ -930,6 +926,35 @@ def extract_references(df=None):
         df_anno = df_anno.compute()
     df_anno.to_csv(cp_config["Paths"]["ReferencesPath"], sep="\t", index=False)
     print_log(df_anno, "write annotations")
+
+
+def assign_over_activation(ref_well_id="350306:01:02_10.0"):
+    """Assign over-activation to the DATASTORE.
+    This is the profile similarity to 350306:01:02_10.0"""
+    ds = read_resource("DATASTORE")
+    try:
+        # Profile of the over-activated reference compound!)
+        ref_profile = (ds[ds["Well_Id"] == ref_well_id][ACT_PROF_PARAMETERS]
+                       .compute().values[0])
+    except IndexError:
+        raise IndexError("Overactivation Reference Well_Id {} "
+                         "was not found in the dataset".format(ref_well_id))
+    dict_oa = {"Well_Id": [], "OverAct": []}
+    for _, rec in ds.iterrows():
+        rec_profile = rec[ACT_PROF_PARAMETERS].values.astype("float64")
+        sim = 100 * cpt.profile_sim(ref_profile, rec_profile)
+        dict_oa["Well_Id"].append(rec["Well_Id"])
+        dict_oa["OverAct"].append(sim)
+    df_oa = pd.DataFrame(dict_oa)
+    ds = read_resource("DATASTORE")
+    ds = ds.merge(df_oa, on="Well_Id", how="left")
+    tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
+    cpt.create_dirs(tmp_dir)
+    cpt.empty_dir(tmp_dir)
+    tmp_file = op.join(tmp_dir, "ds_tmp-*.tsv")
+    ds.to_csv(tmp_file, index=False, sep="\t")
+    ds = dd.read_csv(tmp_file, sep="\t")
+    ds.to_csv(cp_config["Paths"]["DatastorePath"], index=False, sep="\t")
 
 
 def prepare_pp_datastore():
@@ -1285,6 +1310,7 @@ def save_sim_tmp(df_list, fn, npart=NPARTITIONS, inparallel=False):
 def sim_times_found(tmp_file):
     # Assign the number of times a reference was found by a research compound
     # SIM_REFS = drop_cols(SIM_REFS, ["Times_Found"])
+    num_recs = read_resource("DATASTORE")["Compound_Id"].count().compute()
     sim_refs = dd.read_csv(tmp_file, sep="\t")
     tmp = dd.read_csv(tmp_file, sep="\t")
     tmp = tmp[~tmp["Is_Ref"]]
@@ -1294,9 +1320,10 @@ def sim_times_found(tmp_file):
     tmp = tmp.rename(columns={"Compound_Id": "Times_Found"})
     if is_dask(tmp):
         tmp = tmp.compute()
+    tmp["Times_Found"] = 100 * tmp["Times_Found"] / num_recs
     sim_refs = sim_refs.merge(tmp, on="Ref_Id", how="left")
     sim_refs = sim_refs.fillna(0)
-    sim_refs["Times_Found"] = sim_refs["Times_Found"].astype(int)
+    sim_refs["Times_Found"] = sim_refs["Times_Found"]
     write_sim_refs(sim_refs)
 
 
@@ -1348,8 +1375,8 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
             act_cutoff_high = ACT_CUTOFF_PERC_H
         else:
             act_cutoff_high = ACT_CUTOFF_PERC_REF_H
-        if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Toxic"] or rec["Activity"] > act_cutoff_high:
-            # no similarites for low active, very high active or toxic compounds
+        # no similarites for low active, very high active or toxic compounds:
+        if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Toxic"] or rec["Activity"] > act_cutoff_high or rec["OverAct"] > OVERACT_H:
             continue
         rec_ctr += 1
         act_profile = rec[ACT_PROF_PARAMETERS].values.astype("float64")

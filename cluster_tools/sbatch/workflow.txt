@@ -23,6 +23,20 @@ PROFILING
 
     cluster:
     $ sbatch ./prof_res.sh
-    $ sbatch --dependency=afterok:XXXXXXX ./find_similar.sh
-    $ sbatch --dependency=afterok:XXXXXXX ./finalize_similar.sh
-    $ sbatch --dependency=afterok:XXXXXXX ./create_rep.sh
+    $ sbatch --dependency=afterok: ./find_similar.sh
+    $ sbatch --dependency=afterok: ./finalize_similar.sh
+    $ sbatch --dependency=afterok: ./create_rep.sh
+
+    --------------------------------------------------------------------------------------
+
+NOTEBOOK
+    Download Cell Painting data to notebook
+        $ cd ~/comas/notebooks/projects/painting2
+        $ rsync_cp --exclude 'tmp' --exclude 'plots' draco:/ptmp/apahl/cp/profiles/data ./
+    Copy PP data to share
+        $
+
+DATAVIS
+    Copy Cell Painting data to datavis
+        $ cd ~/comas/notebooks/projects/painting2
+        $ rsync_cp data datavis:profiles/

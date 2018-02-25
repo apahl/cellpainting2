@@ -67,12 +67,13 @@ Cutoffs:
     ActCutoffPercRef: 5.0
     ActCutoffPercH: 90.0
     ActCutoffPercRefH: 85.0
+    OverActH: 80
     LimitCellCountH: 75
     LimitCellCountL: 50
     LimitActivityH: 25
     LimitActivityL: 5.0
-    LimitSimilarityH: 75
-    LimitSimilarityL: 50
+    LimitSimilarityH: 90
+    LimitSimilarityL: 75
 
 Options:
     InPlace: True    # whether to modifiy DataFrames inplace or not.

@@ -5,7 +5,7 @@
 #SBATCH --workdir=/ptmp/apahl/cp
 #SBATCH --output=/ptmp/apahl/cp/jobout/findsim_%A-%a.txt
 #SBATCH --error=/ptmp/apahl/cp/jobout/findsim_%A-%a.txt
-#SBATCH --partition=small
+#SBATCH --partition=short # small
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-core=1
 # Memory usage of the job [MB]
@@ -23,6 +23,12 @@ if [[ $SLURM_ARRAY_TASK_ID == 1 ]]; then
   # remove tmp dir, start fresh
   if [ -d /ptmp/apahl/cp/profiles/data/tmp ]; then
     rm -rf /ptmp/apahl/cp/profiles/data/tmp
+  fi
+  if [ -d /ptmp/apahl/cp/profiles/data/plots ]; then
+    rm -rf /ptmp/apahl/cp/profiles/data/plots
+  fi
+  if [ -d /ptmp/apahl/cp/profiles/reports ]; then
+    rm -rf /ptmp/apahl/cp/profiles/reports
   fi
   rm -rf /ptmp/apahl/cp/profiles/data/sim_refs-*.tsv
 else

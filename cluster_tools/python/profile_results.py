@@ -84,7 +84,12 @@ def profile_plates(plates=None, tasks=None):
             ds_plate = ds_plate.join_batch_data()
             ds_plate.update_datastore()
 
-        flush_print("\nPHASE 2: Extracting References...")
+    if tasks is None or tasks == "oa":
+        flush_print("\nPHASE 2: Assigning OverActivation...")
+        cpp.assign_over_activation()
+
+    if tasks is None or tasks in ["oa", "ref"]:
+        flush_print("\nPHASE 3: Extracting References...")
         cpp.extract_references()
         cpp.prepare_pp_datastore()  # prepare a single file version of the DataStore for PPilot
 
@@ -98,7 +103,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--plate",
                         help="Process single plates instead of all data. "
                              "Provide single plate name or comma-separated list.")
-    parser.add_argument("-t", "--tasks", choices=["sim"],
+    parser.add_argument("-t", "--tasks", choices=["ref", "oa"],
                         help="Perform only the specified action.")
 
     args = parser.parse_args()

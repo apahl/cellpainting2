@@ -42,6 +42,7 @@ ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
 ACT_CUTOFF_PERC_H = cp_config["Cutoffs"]["ActCutoffPercH"]
 ACT_CUTOFF_PERC_REF = cp_config["Cutoffs"]["ActCutoffPercRef"]
 ACT_CUTOFF_PERC_REF_H = cp_config["Cutoffs"]["ActCutoffPercRefH"]
+OVERACT_H = cp_config["Cutoffs"]["OverActH"]
 LIMIT_ACTIVITY_H = cp_config["Cutoffs"]["LimitActivityH"]
 LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
 LIMIT_CELL_COUNT_H = cp_config["Cutoffs"]["LimitCellCountH"]
@@ -336,7 +337,7 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
             rec["Act_Flag"] = "inactive"
         # print(rec)
         # similar references are searched for non-toxic compounds with an activity >= LIMIT_ACTIVITY_L
-        if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Activity"] > act_cutoff_high or rec["Toxic"]:
+        if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Activity"] > act_cutoff_high or rec["Toxic"] or rec["OverAct"] > OVERACT_H:
             similars_determined = False
         else:
             similars_determined = True
@@ -672,6 +673,8 @@ def detailed_report(rec, src_dir, ctrl_images):
         templ_dict["Ref_Table"] = "Because of high induction (&gt; {}%), no similarity was determined.".format(ACT_CUTOFF_PERC_H)
     elif rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
         templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
+    elif rec["OverAct"] > OVERACT_H:
+        templ_dict["Ref_Table"] = "Because of high similarity to the overactivation profile (&gt; {}%), no similarity was determined.".format(OVERACT_H)
     else:
         similar = sim_refs[sim_refs["Well_Id"] == well_id].compute()
         similar = similar.sort_values("Similarity",

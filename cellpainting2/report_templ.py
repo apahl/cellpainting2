@@ -795,9 +795,9 @@ REF_TABLE_HEADER = """
     <th>Well Id</th>
     <th>Conc [&micro;M]</th>
     <th>Induction [%]</th>
-    <th title="Activity Profile similarity to the compound shown on top.">Biological<br>Similarity&nbsp;[%]</th>
-    <th title="Chemical Tanimoto similarity to the compound shown on top.">Chemical<br>Similarity&nbsp;[%]</th>
-    <th title="The number of times this reference has been found similar by RESEARCH compounds.">Times<br>Found</th>
+    <th title="Activity Profile similarity to the compound shown on top of the report.">Biological<br>Similarity&nbsp;[%]</th>
+    <th title="Chemical Tanimoto similarity to the compound shown on top of the report.">Chemical<br>Similarity&nbsp;[%]</th>
+    <th title="The relative number of times this reference has been found similar in the data set.">Times<br>Found [%]</th>
     <th>Trivial Name</th>
     <th class="left">Known Activity</th>
 </tr>"""
@@ -809,9 +809,9 @@ REF_TABLE_ROW = """
     <td>$Well_Id</td>
     <td title="Conc [&micro;M]">${Conc_uM}</td>
     <td title="Induction [%]">$Activity</td>
-    <td title="Activity Profile similarity to the compound shown on top.">$Sim_Format</td>
-    <td title="Chemical Tanimoto similarity to the compound shown on top.">$Tan_Format</td>
-    <td title="The number of times this reference has been found similar by RESEARCH compounds.">$Times_Found</td>
+    <td title="Activity Profile similarity to the compound shown on top of the report.">$Sim_Format</td>
+    <td title="Chemical Tanimoto similarity to the compound shown on top of the report.">$Tan_Format</td>
+    <td title="The relative number of times this reference has been found similar in the data set.">$Times_Found</td>
     <td>$Trivial_Name</td>
     <td class="left">$Known_Act</td>
 </tr>"""
@@ -874,6 +874,7 @@ DETAILS_TEMPL = """
 <tr><td class="noborder">Conc:</td><td class="noborder">${Conc_uM} &micro;M</td></tr>
 <tr><td class="noborder">Producer:</td><td class="noborder">$Producer</td></tr>
 <tr><td class="noborder">Induction:</td><td class="noborder">$Activity %</td></tr>
+<tr><td class="noborder">Similarity to<br>Overactivation Profile:</td><td class="noborder">$OverAct</td></tr>
 <tr><td class="noborder">Purity Flag:</td><td class="noborder">$Pure_Flag</td></tr>
 <tr><td class="noborder">Cell Count:</td><td class="noborder">$Rel_Cell_Count %Ctrl</td></tr>
 $Reference

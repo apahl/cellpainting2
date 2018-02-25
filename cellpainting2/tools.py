@@ -22,7 +22,6 @@ import scipy.spatial.distance as dist
 
 ROWS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
         "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"]
-STRUCT = "/home/pahl/comas/share/export_data_b64.csv.gz"
 KEEP = ['Compound_Id', "Batch_Id", "Producer",
         "Address", "Conc_uM", "Smiles", "Pure_Flag"]
 
