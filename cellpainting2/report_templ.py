@@ -811,7 +811,7 @@ REF_TABLE_ROW = """
     <td title="Induction [%]">$Activity</td>
     <td title="Activity Profile similarity to the compound shown on top of the report.">$Sim_Format</td>
     <td title="Chemical Tanimoto similarity to the compound shown on top of the report.">$Tan_Format</td>
-    <td title="The relative number of times this reference has been found similar in the data set.">$Times_Found</td>
+    <td title="The relative number of times this reference has been found similar in the data set [%].">$Times_Found</td>
     <td>$Trivial_Name</td>
     <td class="left">$Known_Act</td>
 </tr>"""

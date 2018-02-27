@@ -33,6 +33,11 @@ NOTEBOOK
     Download Cell Painting data to notebook
         $ cd ~/comas/notebooks/projects/painting2
         $ rsync_cp --exclude 'tmp' --exclude 'plots' draco:/ptmp/apahl/cp/profiles/data ./
+
+    Download Reports
+        $ cd ~/comas/share/cp2
+        $ rsync_cp draco:/ptmp/apahl/cp/profiles/reports ./
+
     Copy PP data to share
         $
 

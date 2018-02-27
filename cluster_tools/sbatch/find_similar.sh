@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #SBATCH --job-name=findsim
-#SBATCH --array=1-10
+#SBATCH --array=1-20  # ALSO CHANGE BELOW IN TWO POSITIONS !!!
 #SBATCH --workdir=/ptmp/apahl/cp
 #SBATCH --output=/ptmp/apahl/cp/jobout/findsim_%A-%a.txt
 #SBATCH --error=/ptmp/apahl/cp/jobout/findsim_%A-%a.txt
@@ -36,9 +36,9 @@ else
 fi
 
 PLATES=$(get_plates)
-find_similar -p $PLATES -t $SLURM_ARRAY_TASK_ID -n 10
+find_similar -p $PLATES -t $SLURM_ARRAY_TASK_ID -n 20
 source deactivate
 
-if [[ $SLURM_ARRAY_TASK_ID == 10 ]]; then
+if [[ $SLURM_ARRAY_TASK_ID == 20 ]]; then
   echo "`date +"%Y%m%d %H:%M"`  $SLURM_JOB_ID: FindSim finished." >> $ORIG_DIR/job_info.txt
 fi

@@ -226,7 +226,7 @@ def load_control_images(src_dir):
 
 
 def sanitize_filename(fn):
-    result = fn.replace(":", "_").replace(",", "_")
+    result = fn.replace(":", "_").replace(",", "_").replace(".", "_")
     return result
 
 
@@ -667,19 +667,19 @@ def detailed_report(rec, src_dir, ctrl_images):
         templ_dict["Img_{}_Cpd".format(ch)] = img_tag(
             im, options='style="width: 250px;"')
         templ_dict["Img_{}_Ctrl".format(ch)] = ctrl_images[ch]
-    if rec["Activity"] < LIMIT_ACTIVITY_L:
+    if rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
+        templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
+    elif rec["Activity"] < LIMIT_ACTIVITY_L:
         templ_dict["Ref_Table"] = "Because of low induction (&lt; {}%), no similarity was determined.".format(LIMIT_ACTIVITY_L)
     elif rec["Activity"] > ACT_CUTOFF_PERC_H:
         templ_dict["Ref_Table"] = "Because of high induction (&gt; {}%), no similarity was determined.".format(ACT_CUTOFF_PERC_H)
-    elif rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
-        templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
     elif rec["OverAct"] > OVERACT_H:
         templ_dict["Ref_Table"] = "Because of high similarity to the overactivation profile (&gt; {}%), no similarity was determined.".format(OVERACT_H)
     else:
         similar = sim_refs[sim_refs["Well_Id"] == well_id].compute()
-        similar = similar.sort_values("Similarity",
-                                      ascending=False).reset_index()
         if len(similar) > 0:
+            similar = similar.sort_values("Similarity",
+                                          ascending=False).reset_index().head(5)
             ref_tbl = sim_ref_table(similar)
             templ_dict["Ref_Table"] = ref_tbl
             sim_data = get_data_for_wells(similar["Ref_Id"].values)

@@ -939,13 +939,16 @@ def assign_over_activation(ref_well_id="350306:01:02_10.0"):
     except IndexError:
         raise IndexError("Overactivation Reference Well_Id {} "
                          "was not found in the dataset".format(ref_well_id))
+    decimals = {"OverAct": 1}
     dict_oa = {"Well_Id": [], "OverAct": []}
     for _, rec in ds.iterrows():
         rec_profile = rec[ACT_PROF_PARAMETERS].values.astype("float64")
         sim = 100 * cpt.profile_sim(ref_profile, rec_profile)
+        if sim < 0.0: sim = 0.0
         dict_oa["Well_Id"].append(rec["Well_Id"])
         dict_oa["OverAct"].append(sim)
     df_oa = pd.DataFrame(dict_oa)
+    df_oa = df_oa.round(decimals)
     ds = read_resource("DATASTORE")
     ds = ds.merge(df_oa, on="Well_Id", how="left")
     tmp_dir = op.join(cp_config["Dirs"]["DataDir"], "tmp")
@@ -1310,6 +1313,7 @@ def save_sim_tmp(df_list, fn, npart=NPARTITIONS, inparallel=False):
 def sim_times_found(tmp_file):
     # Assign the number of times a reference was found by a research compound
     # SIM_REFS = drop_cols(SIM_REFS, ["Times_Found"])
+    decimals = {"Times_Found": 2}
     num_recs = read_resource("DATASTORE")["Compound_Id"].count().compute()
     sim_refs = dd.read_csv(tmp_file, sep="\t")
     tmp = dd.read_csv(tmp_file, sep="\t")
@@ -1321,9 +1325,10 @@ def sim_times_found(tmp_file):
     if is_dask(tmp):
         tmp = tmp.compute()
     tmp["Times_Found"] = 100 * tmp["Times_Found"] / num_recs
+    tmp = tmp.round(decimals)
     sim_refs = sim_refs.merge(tmp, on="Ref_Id", how="left")
     sim_refs = sim_refs.fillna(0)
-    sim_refs["Times_Found"] = sim_refs["Times_Found"]
+    # sim_refs["Times_Found"] = sim_refs["Times_Found"]  # WTF?
     write_sim_refs(sim_refs)
 
 
@@ -1380,7 +1385,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
             continue
         rec_ctr += 1
         act_profile = rec[ACT_PROF_PARAMETERS].values.astype("float64")
-        max_num = 5
+        max_num = 10
         if rec["Is_Ref"]:
             max_num += 1
         similar = find_similar(
@@ -1394,6 +1399,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
             similar = similar.rename(
                 columns={"Well_Id": "Ref_Id", "Compound_Id": "RefCpd_Id"})
             similar["Well_Id"] = rec["Well_Id"]
+            # print(similar.head(3)[["Well_Id", "Ref_Id", "Similarity"]])  # PRINT
             similar["Is_Ref"] = rec["Is_Ref"]
             similar["Compound_Id"] = rec["Compound_Id"]
             mol = mol_from_smiles(rec.get("Smiles", "*"))

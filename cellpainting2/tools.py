@@ -18,7 +18,7 @@ from collections import Counter, namedtuple
 import yaml
 
 import pandas as pd
-import scipy.spatial.distance as dist
+# import scipy.spatial.distance as dist
 
 ROWS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
         "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"]
@@ -94,25 +94,29 @@ class Summary(Counter):
         sys.stdout.flush()
 
 
-def profile_sim(current, reference):
-    """Calculate the similarity of two activity_profiles of the same length.
-    Returns value between 0 .. 1"""
+# def profile_sim(current, reference):
+#     """Calculate the similarity of two activity_profiles of the same length.
+#     Returns value between 0 .. 1"""
 
-    ref_len = len(reference)
-    assert ref_len == len(
-        current), "Activity Profiles must have the same length to be compared."
-    result = 1 - dist.correlation(current, reference)
+#     ref_len = len(reference)
+#     assert ref_len == len(
+#         current), "Activity Profiles must have the same length to be compared."
+#     result = 1 - dist.correlation(current, reference)
+#     return result
+
+
+def profile_sim(p1, p2):
+    p_len = len(p1)
+    assert p_len == len(p2), "profiles must be of same length!"
+    matching = 0
+    significant = 0
+    for idx in range(p_len):
+        if (p1[idx] < 0 and p2[idx] < 0) or (p1[idx] > 0 and p2[idx] > 0):
+            matching += 1
+        if p1[idx] != 0.0 or p2[idx] != 0.0:
+            significant += 1
+    result = matching / significant
     return result
-
-
-# def profile_sim(p1, p2):
-#     p_len = len(p1)
-#     assert p_len == len(p2), "profiles must be of same length!"
-#     matching = 0
-#     for idx in range(p_len):
-#         if (p1[idx] < 0 and p2[idx] < 0) or (p1[idx] > 0 and p2[idx] > 0):
-#             matching += 1
-#     return matching / p_len
 
 
 def split_plate_name(full_name, sep="-"):
