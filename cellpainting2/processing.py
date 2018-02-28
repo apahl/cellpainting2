@@ -1314,7 +1314,8 @@ def sim_times_found(tmp_file):
     # Assign the number of times a reference was found by a research compound
     # SIM_REFS = drop_cols(SIM_REFS, ["Times_Found"])
     decimals = {"Times_Found": 2}
-    num_recs = read_resource("DATASTORE")["Compound_Id"].count().compute()
+    num_recs = read_resource("DATASTORE")
+    num_recs = num_recs[~num_recs["Is_Ref"]]["Compound_Id"].count().compute()
     sim_refs = dd.read_csv(tmp_file, sep="\t")
     tmp = dd.read_csv(tmp_file, sep="\t")
     tmp = tmp[~tmp["Is_Ref"]]
@@ -1353,7 +1354,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
     if inparallel:
         assert isinstance(taskid, int), "When `inparallel`, `taskid` has to be int."
         cp_config["Paths"]["SimRefsPath"] = cp_config["Paths"]["SimRefsPath"].replace(
-            "*", str(taskid - 1))
+            "*", "{:02d}".format(taskid - 1))
     if df is None:
         load_resource("DATASTORE")
         df = DATASTORE
@@ -1367,7 +1368,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
         tmp_file = op.join(tmp_dir, "sim_tmp-*.tsv")
     else:
         sim_refs = pd.DataFrame()
-        tmp_file = op.join(tmp_dir, "sim_tmp-{}.tsv".format(taskid - 1))
+        tmp_file = op.join(tmp_dir, "sim_tmp-{:02d}.tsv".format(taskid - 1))
     df_refs = REFERENCES
     sim_refs = drop_cols(sim_refs, "Times_Found")
     ctr = cpt.Summary()
@@ -1399,7 +1400,6 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
             similar = similar.rename(
                 columns={"Well_Id": "Ref_Id", "Compound_Id": "RefCpd_Id"})
             similar["Well_Id"] = rec["Well_Id"]
-            # print(similar.head(3)[["Well_Id", "Ref_Id", "Similarity"]])  # PRINT
             similar["Is_Ref"] = rec["Is_Ref"]
             similar["Compound_Id"] = rec["Compound_Id"]
             mol = mol_from_smiles(rec.get("Smiles", "*"))

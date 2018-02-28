@@ -73,7 +73,7 @@ Cutoffs:
     LimitActivityH: 25
     LimitActivityL: 5.0
     LimitSimilarityH: 90
-    LimitSimilarityL: 50
+    LimitSimilarityL: 75
 
 Options:
     InPlace: True    # whether to modifiy DataFrames inplace or not.

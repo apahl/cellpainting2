@@ -505,7 +505,7 @@ def parm_hist(increased, decreased, hist_cache):
 
 
 def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
-             show=True, colorbar=True, plot_cache=None):
+             show=True, colorbar=True, similarity=False, plot_cache=None):
     # try to load heatmap from cache:
     if plot_cache is not None and op.isfile(plot_cache):
         result = open(plot_cache).read()
@@ -529,10 +529,18 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
     fp_list = []
     max_val = 6                 # using a fixed color range now
     min_val = -6
-    for _, rec in df.iterrows():
-        y_labels.append(rec[id_prop])
+    for ctr, (_, rec) in enumerate(df.iterrows()):
         fp = [rec[x] for x in ACT_PROF_PARAMETERS]
         fp_list.append(fp)
+        if similarity:
+            if ctr == 0:
+                prof_ref = fp
+                y_labels.append("Sim  |  {}".format(rec[id_prop]))
+            else:
+                sim = cpt.profile_sim(prof_ref, fp) * 100
+                y_labels.append("{:3.0f}% |  {}".format(sim, rec[id_prop]))
+        else:
+            y_labels.append(rec[id_prop])
         # m_val = max(fp)       # this was the calculation of the color range
         # if m_val > max_val:
         #     max_val = m_val
