@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------------
 Dirs:
     PlatesDir: /home/pahl/comas/projects/painting/plates
-    DataDir: /home/pahl/comas/notebooks/projects/painting2/data
+    DataDir: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr
     CompoundDir: /home/pahl/comas/share
     ReportDir: /home/pahl/comas/share/cp2/reports_test
 
@@ -29,11 +29,11 @@ Paths:
     ContainerDataPath: /home/pahl/comas/share/comas_container_data.tsv
     ContainerDataCols: []
     AnnotationsPath: /home/pahl/comas/share/known_act.tsv  # tab-delim.
-    ReferencesPath: /home/pahl/comas/notebooks/projects/painting2/data/references_act_prof.tsv
-    SimRefsPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs-*.tsv
-    SimRefsExtPath: /home/pahl/comas/notebooks/projects/painting2/data/sim_refs_ext-*.tsv
-    DatastorePath: /home/pahl/comas/notebooks/projects/painting2/data/cp_datastore-*.tsv
-    DatastorePPPath: /home/pahl/comas/notebooks/projects/painting2/data/cp_datastore_pp.tsv
+    ReferencesPath: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr/references_act_prof.tsv
+    SimRefsPath: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr/sim_refs-*.tsv
+    SimRefsExtPath: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr/sim_refs_ext-*.tsv
+    DatastorePath: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr/cp_datastore-*.tsv
+    DatastorePPPath: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr/cp_datastore_pp.tsv
     DatastoreCols:
         - Compound_Id
         - Container_Id

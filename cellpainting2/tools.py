@@ -102,6 +102,7 @@ def profile_sim(current, reference):
     assert ref_len == len(
         current), "Activity Profiles must have the same length to be compared."
     result = 1 - dist.correlation(current, reference)
+    if result < 0.0: result = 0.0
     return result
 
 

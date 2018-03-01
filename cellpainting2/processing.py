@@ -56,7 +56,7 @@ try:
     #: Library version
     VERSION = apl_tools.get_commit(__file__)
     # I use this to keep track of the library versions I use in my project notebooks
-    print("{:45s} (commit: {})".format(__name__, VERSION))
+    print("{:45s} ({})".format(__name__, VERSION))
 
 except ImportError:
     AP_TOOLS = False
