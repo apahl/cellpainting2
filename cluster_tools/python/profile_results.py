@@ -76,7 +76,7 @@ def profile_plates(plates=None, tasks=None):
             ds_plate.well_type_from_position()
 
             ds_plate.flag_toxic()
-            ds_plate = ds_plate.activity_profile(act_cutoff=1.58)
+            ds_plate = ds_plate.activity_profile(act_cutoff=1.585)
             ds_plate = ds_plate.join_layout_1536(plate.name)
             ds_plate.data["Plate"] = "{}-{}".format(plate.date, plate.name)
 

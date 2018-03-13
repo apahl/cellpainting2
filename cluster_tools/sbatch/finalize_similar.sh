@@ -15,7 +15,7 @@ set -e
 ORIG_DIR=$(pwd)
 
 source activate chem
-sleep 5
+sleep 300
 finalize_similar
 source deactivate
 

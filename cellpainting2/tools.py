@@ -18,7 +18,12 @@ from collections import Counter, namedtuple
 import yaml
 
 import pandas as pd
+import numpy as np
 import scipy.spatial.distance as dist
+
+from rdkit.Chem import AllChem as Chem
+from rdkit import DataStructs
+
 
 ROWS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
         "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"]
@@ -94,7 +99,7 @@ class Summary(Counter):
         sys.stdout.flush()
 
 
-def profile_sim(current, reference):
+def profile_sim_dist_corr(current, reference):
     """Calculate the similarity of two activity_profiles of the same length.
     Returns value between 0 .. 1"""
 
@@ -106,18 +111,60 @@ def profile_sim(current, reference):
     return result
 
 
-# def profile_sim(p1, p2):
-#     p_len = len(p1)
-#     assert p_len == len(p2), "profiles must be of same length!"
-#     matching = 0
-#     significant = 0
-#     for idx in range(p_len):
-#         if (p1[idx] < 0 and p2[idx] < 0) or (p1[idx] > 0 and p2[idx] > 0):
-#             matching += 1
-#         if p1[idx] != 0.0 or p2[idx] != 0.0:
-#             significant += 1
-#     result = matching / significant
-#     return result
+def profile_sim_tanimoto(p1, p2):
+    p_len = len(p1)
+    assert p_len == len(p2), "profiles must be of same length!"
+    matching = 0
+    significant = 0
+    for idx in range(p_len):
+        if (p1[idx] < 0 and p2[idx] < 0) or (p1[idx] > 0 and p2[idx] > 0):
+            matching += 1
+        if p1[idx] != 0.0 or p2[idx] != 0.0:
+            significant += 1
+    result = matching / significant
+    return result
+
+
+def subtract_profiles(prof1, prof2):
+    """Subtract prof2 from prof1. A new profile is returned."""
+    prof1_len = len(prof1)
+    assert prof1_len == len(prof2), "Activity Profiles must have the same length to be compared."
+    result = []
+    for idx in range(prof1_len):
+        d = prof1[idx] - prof2[idx]
+        if abs(d) <= 1.58: d = 0.0
+        result.append(d)
+    return result
+
+
+def del_nz_positions(prof1, prof2):
+    """Set positions that are non-zero in both profiles to zero. A new profile is returned."""
+    prof1_len = len(prof1)
+    assert prof1_len == len(prof2), "Activity Profiles must have the same length to be compared."
+    result = []
+    for idx in range(prof1_len):
+        if prof1[idx] != 0.0 and prof2[idx] != 0.0:
+            result.append(0.0)
+        else:
+            result.append(prof1[idx])
+    return result
+
+
+def mol_from_smiles(smi):
+    if not isinstance(smi, str):
+        smi = "*"
+    mol = Chem.MolFromSmiles(smi)
+    if not mol:
+        mol = Chem.MolFromSmiles("*")
+    return mol
+
+
+def chem_sim(mol_fp, query_smi):
+    query = mol_from_smiles(query_smi)
+    if len(query.GetAtoms()) > 1:
+        query_fp = Chem.GetMorganFingerprint(query, 2)  # ECFC4
+        return round(DataStructs.TanimotoSimilarity(mol_fp, query_fp), 3)
+    return np.nan
 
 
 def split_plate_name(full_name, sep="-"):

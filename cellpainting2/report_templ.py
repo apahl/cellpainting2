@@ -952,7 +952,7 @@ The Log2-fold value of a compound‘s measured parameter value is then calculate
 <p>
 Because the log of a negative number is not defined, the Log2-folds for decreased parameter values (-2x MAD, -4x MAD, etc.) are calculated for the corresponding positive values (+2x MAD, +4x MAD, etc.) and then the Log2-fold value is given a negative sign (-1.0, -2.0, etc.).</p>
 <p>
-To increase signal to noise, the Log2-fold values from Median to +/- 1.5x MAD (Log2-fold value of 0.58) are set to zero.</p>
+To increase signal to noise, the Log2-fold values from Median to +/- 3.0x MAD (Log2-fold value of +/-1.58) are set to zero.</p>
 <br>
 §TABLE_INTRO
 §PARM_TABLE_HEADER

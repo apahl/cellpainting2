@@ -26,9 +26,9 @@ import numpy as np
 from dask import dataframe as dd
 
 from rdkit.Chem import AllChem as Chem
-from rdkit import DataStructs
 
 from cellpainting2 import tools as cpt
+from cpt import mol_from_smiles
 cp_config = cpt.load_config("config")
 IPYTHON = cpt.is_interactive_ipython()
 if IPYTHON:
@@ -433,30 +433,30 @@ class DataSet():
                                 sort_by_input=sort_by_input)
         return result
 
-    def update_similar_refs(self, write=True):
+    def update_similar_refs(self, write=True, method="dist_corr"):
         """Find similar compounds in references and update the export file.
         The export file of the dict object is in tsv format. In addition,
         a tsv file with only the most similar reference is written for use in PPilot.
         This method does not return anything, it just writes the result to file."""
-        update_similar_refs(self.data, write=write)
+        update_similar_refs(self.data, write=write, method=method)
 
     def update_datastore(self):
         """Update the DataStore with the current DataFrame."""
         update_datastore(self.data)
 
-    def find_similar(self, act_profile, cutoff=0.5, max_num=5):
+    def find_similar(self, act_profile, cutoff=0.5, max_num=5, method="dist_corr"):
         """Filter the dataframe for activity profiles similar to the given one.
         `cutoff` gives the similarity threshold, default is 0.5."""
         result = DataSet()
         result.data = find_similar(
-            self.data, act_profile=act_profile, cutoff=cutoff, max_num=max_num)
-        result.print_log("find similar")
+            self.data, act_profile=act_profile, cutoff=cutoff, max_num=max_num, method=method)
+        result.print_log("find similar", add_info=method)
         return result
 
-    def well_id_similarity(self, well_id1, well_id2):
+    def well_id_similarity(self, well_id1, well_id2, method="dist_corr"):
         """Calculate the similarity of the activity profiles from two compounds
         (identified by `Compound_Id`). Returns value between 0 .. 1"""
-        return well_id_similarity(self.data, well_id1, self.data, well_id2)
+        return well_id_similarity(self.data, well_id1, self.data, well_id2, method=method)
 
     @property
     def shape(self):
@@ -928,7 +928,7 @@ def extract_references(df=None):
     print_log(df_anno, "write annotations")
 
 
-def assign_over_activation(ref_well_id="350306:01:02_10.0"):
+def assign_over_activation(ref_well_id="350306:01:02_10.0", method="dist_corr"):
     """Assign over-activation to the DATASTORE.
     This is the profile similarity to 350306:01:02_10.0"""
     ds = read_resource("DATASTORE")
@@ -939,11 +939,15 @@ def assign_over_activation(ref_well_id="350306:01:02_10.0"):
     except IndexError:
         raise IndexError("Overactivation Reference Well_Id {} "
                          "was not found in the dataset".format(ref_well_id))
+    if "dist" in method.lower():
+        profile_sim = cpt.profile_sim_dist_corr
+    else:
+        profile_sim = cpt.profile_sim_tanimoto
     decimals = {"OverAct": 1}
     dict_oa = {"Well_Id": [], "OverAct": []}
     for _, rec in ds.iterrows():
         rec_profile = rec[ACT_PROF_PARAMETERS].values.astype("float64")
-        sim = 100 * cpt.profile_sim(ref_profile, rec_profile)
+        sim = 100 * profile_sim(ref_profile, rec_profile)
         if sim < 0.0: sim = 0.0
         dict_oa["Well_Id"].append(rec["Well_Id"])
         dict_oa["OverAct"].append(sim)
@@ -1081,11 +1085,12 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
 
     Returns a new Pandas DF."""
     assert is_pandas(df), "df has to be a Pandas DataFrame."
+    mad_factor = 2**act_cutoff
 
     def _log2_mad(x, median, mad):
         if mad < 1E-4:
             mad = 1E-4
-        if abs(x - median) <= (3 * mad):
+        if abs(x - median) <= (mad_factor * mad):
             return 0.0
         if x >= median:
             l2f = math.log2(((x - median) / mad))
@@ -1189,7 +1194,7 @@ def id_filter(df, cpd_ids, id_col="Compound_Id", reset_index=True, sort_by_input
 
 
 def find_similar(df, act_profile, cutoff=0.5, max_num=5, only_final=True,
-                 parameters=ACT_PROF_PARAMETERS):
+                 parameters=ACT_PROF_PARAMETERS, method="dist_corr"):
     """Filter the dataframe for activity profiles similar to the given one.
     `cutoff` gives the similarity threshold, default is 0.5.
     df can be either a Pandas OR a DASK DF.
@@ -1204,12 +1209,16 @@ def find_similar(df, act_profile, cutoff=0.5, max_num=5, only_final=True,
     # df["Similarity"] = (df[act_parameters]
     #                     .apply(lambda row: [[x for x in row]], axis=1)
     #                     .apply(lambda x: cpt.profile_sim(x[0], act_profile), axis=1))  # Pandas black belt!!
+    if "dist" in method.lower():
+        profile_sim = cpt.profile_sim_dist_corr
+    else:
+        profile_sim = cpt.profile_sim_tanimoto
     if not isinstance(act_profile, np.ndarray):
         act_profile = np.array(act_profile)
     sim_lst = []
     for _, rec in df.iterrows():
         rec_profile = rec[act_parameters].values.astype("float64")
-        sim = cpt.profile_sim(act_profile, rec_profile)
+        sim = profile_sim(act_profile, rec_profile)
         if sim >= cutoff:
             rec["Similarity"] = sim
             sim_lst.append(rec)
@@ -1233,15 +1242,6 @@ def load_obj(fn):
     with open(fn, "rb") as f:
         obj = pickle.load(f)
     return obj
-
-
-def mol_from_smiles(smi):
-    if not isinstance(smi, str):
-        smi = "*"
-    mol = Chem.MolFromSmiles(smi)
-    if not mol:
-        mol = Chem.MolFromSmiles("*")
-    return mol
 
 
 def write_sim_refs(sim_refs, mode="cpd"):
@@ -1333,7 +1333,7 @@ def sim_times_found(tmp_file):
     write_sim_refs(sim_refs)
 
 
-def update_similar_refs(df=None, inparallel=False, taskid=None):
+def update_similar_refs(df=None, inparallel=False, taskid=None, method="dist_corr"):
     """Find similar compounds in references and update the export file.
     The export file of the DataFrame object is in tsv format. In addition,
     another tsv file (or maybe JSON?) is written for use in PPilot.
@@ -1343,13 +1343,6 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
     but has to be done manually, then, with `write_sim_refs()`
     `inparallel` == True defers the times_found determination,
     then taskid has to be an integer."""
-    def _chem_sim(mol_fp, query_smi):
-        query = mol_from_smiles(query_smi)
-        if len(query.GetAtoms()) > 1:
-            query_fp = Chem.GetMorganFingerprint(query, 2)  # ECFC4
-            return round(DataStructs.TanimotoSimilarity(mol_fp, query_fp), 3)
-        return np.nan
-
     global cp_config
     if inparallel:
         assert isinstance(taskid, int), "When `inparallel`, `taskid` has to be int."
@@ -1389,8 +1382,8 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
         max_num = 10
         if rec["Is_Ref"]:
             max_num += 1
-        similar = find_similar(
-            df_refs, act_profile, cutoff=LIMIT_SIMILARITY_L / 100, max_num=max_num)
+        similar = find_similar(df_refs, act_profile, cutoff=LIMIT_SIMILARITY_L / 100,
+                               max_num=max_num, method=method)
         if len(similar) > 0:
             save_needed = True
             if rec["Is_Ref"]:
@@ -1406,7 +1399,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
             if len(mol.GetAtoms()) > 1:
                 mol_fp = Chem.GetMorganFingerprint(mol, 2)  # ECFC4
                 similar["Tanimoto"] = similar["Smiles"].apply(
-                    lambda q: _chem_sim(mol_fp, q))
+                    lambda q: cpt.chem_sim(mol_fp, q))
             else:
                 similar["Tanimoto"] = np.nan
             update_lst.append(similar)
@@ -1431,9 +1424,14 @@ def update_similar_refs(df=None, inparallel=False, taskid=None):
     print_log(df, "update similar")
 
 
-def well_id_similarity(df1, well_id1, df2, well_id2):
+def well_id_similarity(df1, well_id1, df2, well_id2, method="dist_corr"):
     """Calculate the similarity of the activity profiles from two compounds
     (identified by `Well_Id`). Returns value between 0 .. 1"""
     act1 = df1[df1["Well_Id"] == well_id1][ACT_PROF_PARAMETERS].values[0]
     act2 = df2[df2["Well_Id"] == well_id2][ACT_PROF_PARAMETERS].values[0]
-    return round(cpt.profile_sim(act1, act2), 3)
+    if "dist" in method.lower():
+        print("- Using Distance Correlation similarity.")
+        return round(cpt.profile_sim_dist_corr(act1, act2), 3)
+    else:
+        print("- Using Tanimoto similarity.")
+        return round(cpt.profile_sim_tanimoto(act1, act2), 3)

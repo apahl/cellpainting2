@@ -42,6 +42,36 @@ NOTEBOOK
         $
 
 DATAVIS
+    Copy Compound data to datavis
+        $ cd ~/comas/share
+        $ rsync_cp comas_*.tsv datavis:resources/
+        $ rsync_cp known_act.tsv datavis:resources/
+
     Copy Cell Painting data to datavis
+
+
         $ cd ~/comas/notebooks/projects/painting2
         $ rsync_cp data datavis:profiles/
+
+
+Number of Parameters: 637
+
+Data Set                 Measurements    Compounds
+―――――――――――――――――――――  ――――――――――――――  ―――――――――――
+Full                           16139        13231
+
+↳ References                    4452         3103
+  - Induction >  5%             3466         2520
+  - Induction > 10%             2645         1998
+  - Induction > 20%             1552         1224
+  - Induction > 60%              322          280
+  - Induction > 90%               27           26
+  ↳ Toxic                         78           68
+
+↳ Internal                     11687        10128
+  - Induction >  5%             8895         7952
+  - Induction > 10%             6726         6156
+  - Induction > 20%             3664         3438
+  - Induction > 60%              702          660
+  - Induction > 90%              109          105
+  ↳ Toxic                        159          148

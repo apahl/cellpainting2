@@ -505,12 +505,16 @@ def parm_hist(increased, decreased, hist_cache):
 
 
 def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
-             show=True, colorbar=True, similarity=False, plot_cache=None):
+             show=True, colorbar=True, similarity=False, method="dist_corr",
+             plot_cache=None):
     # try to load heatmap from cache:
     if plot_cache is not None and op.isfile(plot_cache):
         result = open(plot_cache).read()
         return result
-
+    if "dist" in method.lower():
+        profile_sim = cpt.profile_sim_dist_corr
+    else:
+        profile_sim = cpt.profile_sim_tanimoto
     df_len = len(df)
     img_size = 15 if show else 17
     plt.style.use("seaborn-white")
@@ -537,7 +541,7 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
                 prof_ref = fp
                 y_labels.append("Sim  |  {}".format(rec[id_prop]))
             else:
-                sim = cpt.profile_sim(prof_ref, fp) * 100
+                sim = profile_sim(prof_ref, fp) * 100
                 y_labels.append("{:3.0f}% |  {}".format(sim, rec[id_prop]))
         else:
             y_labels.append(rec[id_prop])
@@ -661,9 +665,9 @@ def detailed_report(rec, src_dir, ctrl_images):
     templ_dict["Date"] = date
     templ_dict["mol_img"] = mol_img_tag(mol, options='class="cpd_image"')
     if templ_dict["Is_Ref"]:
-        if templ_dict["Trivial_Name"] == np.nan or templ_dict["Trivial_Name"] == "":
+        if np.isnan(templ_dict["Trivial_Name"]) or templ_dict["Trivial_Name"] == "":
             templ_dict["Trivial_Name"] = "&mdash;"
-        if templ_dict["Known_Act"] == np.nan or templ_dict["Known_Act"] == "":
+        if np.isnan(templ_dict["Known_Act"]) or templ_dict["Known_Act"] == "":
             templ_dict["Known_Act"] = "&mdash;"
         t = Template(cprt.DETAILS_REF_ROW)
         templ_dict["Reference"] = t.substitute(templ_dict)
