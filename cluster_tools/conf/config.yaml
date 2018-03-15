@@ -72,8 +72,8 @@ Cutoffs:
     LimitCellCountL: 50
     LimitActivityH: 25
     LimitActivityL: 5.0
-    LimitSimilarityH: 90
-    LimitSimilarityL: 75
+    LimitSimilarityH: 85
+    LimitSimilarityL: 70
 
 Options:
     InPlace: True    # whether to modifiy DataFrames inplace or not.

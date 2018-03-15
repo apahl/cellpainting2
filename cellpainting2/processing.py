@@ -27,8 +27,8 @@ from dask import dataframe as dd
 
 from rdkit.Chem import AllChem as Chem
 
+from cellpainting2.tools import mol_from_smiles
 from cellpainting2 import tools as cpt
-from cpt import mol_from_smiles
 cp_config = cpt.load_config("config")
 IPYTHON = cpt.is_interactive_ipython()
 if IPYTHON:
