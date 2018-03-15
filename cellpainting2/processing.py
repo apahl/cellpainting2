@@ -1198,33 +1198,26 @@ def find_similar(df, act_profile, cutoff=0.5, max_num=5, only_final=True,
     """Filter the dataframe for activity profiles similar to the given one.
     `cutoff` gives the similarity threshold, default is 0.5.
     df can be either a Pandas OR a DASK DF.
-    Returns a Pandas DF."""
+    Returns a Pandas DF or None when no similars are found."""
     if parameters is None:  # choose all numeric parameters
         act_parameters = measurements(df)
     else:
         act_parameters = parameters.copy()
     assert len(act_parameters) > 0
     decimals = {"Similarity": 3}
-    # result = df.copy()
-    # df["Similarity"] = (df[act_parameters]
-    #                     .apply(lambda row: [[x for x in row]], axis=1)
-    #                     .apply(lambda x: cpt.profile_sim(x[0], act_profile), axis=1))  # Pandas black belt!!
     if "dist" in method.lower():
         profile_sim = cpt.profile_sim_dist_corr
     else:
         profile_sim = cpt.profile_sim_tanimoto
     if not isinstance(act_profile, np.ndarray):
         act_profile = np.array(act_profile)
-    sim_lst = []
-    for _, rec in df.iterrows():
-        rec_profile = rec[act_parameters].values.astype("float64")
-        sim = profile_sim(act_profile, rec_profile)
-        if sim >= cutoff:
-            rec["Similarity"] = sim
-            sim_lst.append(rec)
-    if len(sim_lst) == 0:
-        return pd.DataFrame()
-    result = pd.DataFrame(sim_lst)
+
+    result = df.copy()
+    # Pandas black belt!! :
+    result["Similarity"] = (result[act_parameters]
+                            .apply(lambda x: profile_sim(x, act_profile), axis=1))
+    result = result[result["Similarity"] >= cutoff].compute()
+    if len(result) == 0: return None
     result = result.sort_values("Similarity", ascending=False).head(max_num)
     if only_final:
         result.drop(act_parameters, axis=1, inplace=True)
@@ -1384,7 +1377,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None, method="dist_cor
             max_num += 1
         similar = find_similar(df_refs, act_profile, cutoff=LIMIT_SIMILARITY_L / 100,
                                max_num=max_num, method=method)
-        if len(similar) > 0:
+        if similar is not None:
             save_needed = True
             if rec["Is_Ref"]:
                 similar.drop(similar.head(1).index, inplace=True)
