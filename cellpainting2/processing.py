@@ -681,8 +681,9 @@ def load_resource(resource, force=False, mode="cpd", limit_cols=True):
             join_col = cp_config["Paths"]["LayoutsJoinCol"]
             name_col = cp_config["Paths"]["LayoutsNameCol"]
             LAYOUTS[join_col] = LAYOUTS[name_col] + LAYOUTS[join_col]
-            drop = [name_col, "Plate_name_1536", "Address_1536", "Index", 1, 2]
-            LAYOUTS = drop_cols(LAYOUTS, drop)
+            drop = [name_col, "V", "Index", 1, 2]
+            LAYOUTS = LAYOUTS[LAYOUTS["V"] != 0]  # keep only visible records in the layout
+            LAYOUTS = drop_cols(LAYOUTS, drop).compute()
 
     else:
         raise FileNotFoundError("# unknown resource: {}".format(resource))
@@ -766,7 +767,9 @@ def join_layout_1536(df, plate, quadrant=""):
         quadrant = "-" + quadrant
     result = df.copy()
     result[join_col] = plate + result["Metadata_Well"]
-    result = LAYOUTS.merge(result, on=join_col, how="inner").compute()
+    result = LAYOUTS.merge(result, on=join_col, how="inner")
+    if is_dask(result):
+        result = result.compute()
     result = join_container(result)
     result.drop(join_col, axis=1, inplace=True)
     result["Well_Id"] = result["Container_Id"] + "_" + result["Conc_uM"].map('{:04.1f}'.format)
