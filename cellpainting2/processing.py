@@ -298,7 +298,7 @@ class DataSet():
         position_from_well(self.data, well_name=well_name,
                            row_name=row_name, col_name=col_name)
 
-    def join_layout_1536(self, plate, quadrant="", how="inner"):
+    def join_layout_1536(self, plate, quadrant="", keep_ctrls=False):
         """Cell Painting is always run in 384er plates.
         COMAS standard screening plates are format 1536.
         With this function, the 1536-to-384 reformatting file
@@ -307,8 +307,8 @@ class DataSet():
         `data` has to be a Pandas DataFrame."""
         assert self.is_pandas, "`data` has to be a Pandas DataFrame."
         result = DataSet(log=self.log)
-        result.data = join_layout_1536(
-            self.data, plate, quadrant)
+        result.data = join_layout_1536(self.data, plate, quadrant,
+                                       keep_ctrls=keep_ctrls)
         return result
 
     def numeric_parameters(self):
@@ -377,11 +377,12 @@ class DataSet():
             self.data, df_data=df_data, how=how, fillna=fillna)
         return result
 
-    def join_container(self, cont_data=None, how="inner"):
+    def join_container(self, cont_data=None, keep_ctrls=False):
         """`data` has to be a Pandas DataFrame."""
         assert self.is_pandas, "`data` has to be a Pandas DataFrame."
         result = DataSet(log=self.log)
-        result.data = join_container(self.data, cont_data=cont_data, how=how)
+        result.data = join_container(self.data, cont_data=cont_data,
+                                     keep_ctrls=keep_ctrls)
         return result
 
     def join_smiles(self, df_smiles=None, how="left"):
@@ -751,7 +752,7 @@ def get_cpd_from_container(df):
     return result
 
 
-def join_layout_1536(df, plate, quadrant=""):
+def join_layout_1536(df, plate, quadrant="", keep_ctrls=False):
     """Cell Painting is always run in 384er plates.
     COMAS standard screening plates are format 1536.
     With this function, the 1536-to-384 reformatting file
@@ -765,12 +766,24 @@ def join_layout_1536(df, plate, quadrant=""):
         quadrant = str(quadrant)
     if len(quadrant) > 0:
         quadrant = "-" + quadrant
+    if keep_ctrls:
+        how = "right"
+    else:
+        how = "inner"
     result = df.copy()
     result[join_col] = plate + result["Metadata_Well"]
-    result = LAYOUTS.merge(result, on=join_col, how="inner")
+    result = LAYOUTS.merge(result, on=join_col, how=how)
     if is_dask(result):
         result = result.compute()
-    result = join_container(result)
+
+    result = join_container(result, keep_ctrls=keep_ctrls)
+    if keep_ctrls:
+        ctrls = (result["plateColumn"] == 11) | (result["plateColumn"] == 12)
+
+        result.loc[ctrls, "Compound_Id"] = 245754
+        result.loc[ctrls, "Container_Id"] = "245754:01:01"
+        result.loc[ctrls, "Producer"] = "COMAS"
+        result.loc[ctrls, "Conc_uM"] = 0.0
     result.drop(join_col, axis=1, inplace=True)
     result["Well_Id"] = result["Container_Id"] + "_" + result["Conc_uM"].map('{:04.1f}'.format)
     result = result.apply(pd.to_numeric, errors='ignore')
@@ -867,13 +880,17 @@ def join_container_data(df, df_data=None, how="left", fillna=""):
     return result
 
 
-def join_container(df, cont_data=None):
+def join_container(df, cont_data=None, keep_ctrls=False):
     """df is a Pandas DataFrame"""
     assert is_pandas(df), "df has to be a Pandas DataFrame."
     if cont_data is None:
         load_resource("CONTAINER")
         cont_data = CONTAINER
-    result = cont_data.merge(df, on="Container_Id", how="inner")
+    if keep_ctrls:
+        how = "right"
+    else:
+        how = "inner"
+    result = cont_data.merge(df, on="Container_Id", how=how)
     if is_dask(result):
         result = result.compute()
     print_log(result, "join container")
