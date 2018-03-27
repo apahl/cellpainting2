@@ -51,6 +51,7 @@ Paths:
     LayoutsPath: /home/pahl/comas/projects/painting/plates/layouts/layouts.tsv
     LayoutsJoinCol: Address_384
     LayoutsNameCol: Plate_name_384
+    QCStatsPath: /home/pahl/comas/notebooks/projects/painting2/data_dist_corr/qcstats.tsv
 
 # ----------------------------------------------------------------------------
 ParameterHelp:

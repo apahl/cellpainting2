@@ -400,7 +400,6 @@ class DataSet():
         result.data = join_annotations(self.data)
         return result
 
-
     def activity_profile(self, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_final=True):
         """Calculates the log2-fold values for the parameters.
 
@@ -417,6 +416,12 @@ class DataSet():
         result.data = activity_profile(self.data, parameters=parameters,
                                        act_cutoff=act_cutoff, only_final=only_final)
         return result
+
+    def qc_stats(self):
+        """Writes statistics about the plate into a separate file.
+        Does not return anything."""
+        assert self.is_pandas, "`data` has to be a Pandas DataFrame."
+        qc_stats(self.data)
 
     def relevant_parameters(self, ctrls_std_rel_min=0.001,
                             ctrls_std_rel_max=0.10):
@@ -573,6 +578,14 @@ def read_resource(res, mode="cpd"):
         except (FileNotFoundError, OSError):
             print("  * DATASTORE not found, creating new one.")
             result = pd.DataFrame()
+    elif "qc" in res:
+        print("  - reading resource:                      (QCSTATS)")
+        try:
+            # handle as PANDAS DataFrame for now
+            result = pd.read_csv(cp_config["Paths"]["QCStatsPath"], sep="\t")
+        except (FileNotFoundError, OSError):
+            print("  * QCSTATS not found, creating new one.")
+            result = pd.DataFrame()
     elif "anno" in res:
         print("  - reading resource:                      (ANNOTATIONS)")
         result = dd.read_csv(cp_config["Paths"]["AnnotationsPath"], sep="\t")
@@ -584,7 +597,8 @@ def read_resource(res, mode="cpd"):
 
 def load_resource(resource, force=False, mode="cpd", limit_cols=True):
     """Available resources: SMILES, ANNOTATIONS, SIM_REFS, REFERENCES,
-                            CONTAINER, CONTAINER_DATA, BATCH_DATA, DATASTORE, LAYOUTS"""
+                            CONTAINER, CONTAINER_DATA, BATCH_DATA, DATASTORE, LAYOUTS,
+                            QCSTATS"""
     res = resource.lower()
     glbls = globals()
     if "smi" in res:
@@ -666,6 +680,16 @@ def load_resource(resource, force=False, mode="cpd", limit_cols=True):
             except (FileNotFoundError, OSError):
                 print("  * DATASTORE not found, creating new one.")
                 DATASTORE = pd.DataFrame()
+    elif "qc" in res:
+        if force or "QCSTATS" not in glbls:
+            global QCSTATS
+            print("  - loading resource:                      (QCSTATS)")
+            try:
+                # handle as PANDAS DataFrame for now
+                QCSTATS = pd.read_csv(cp_config["Paths"]["QCStatsPath"], sep="\t")
+            except (FileNotFoundError, OSError):
+                print("  * QCSTATS not found, creating new one.")
+                QCSTATS = pd.DataFrame()
     elif "layout" in res:
         if force or "LAYOUTS" not in glbls:
             global LAYOUTS
@@ -1152,6 +1176,38 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
     result = result.round(decimals)
     print_log(result, "activity profile")
     return result
+
+
+def qc_stats(df):
+    num_stats = 3
+    plate_name = df["Plate"].values[0]
+    stats_parm = ["Count_Cells"] + ACT_PROF_PARAMETERS
+    dfc = df[df["WellType"] == "Control"]
+    dfc = dfc[stats_parm].copy()
+    stats_d = {
+        "Plate": [plate_name] * num_stats,
+        # "Stat": ["Min", "Max", "Median", "MAD", "Min_rel", "Max_rel", "MAD_rel"],
+        "Stat": ["Min_rel", "Max_rel", "MAD_rel"],
+    }
+    for sp in stats_parm:
+        stats_l = []
+        # stats_l.append(dfc[sp].min())
+        # stats_l.append(dfc[sp].max())
+        # stats_l.append(dfc[sp].median())
+        # stats_l.append(dfc[sp].mad())
+        stats_l.append((dfc[sp].median() - dfc[sp].min()) / dfc[sp].median())
+        stats_l.append((dfc[sp].max() - dfc[sp].median()) / dfc[sp].median())
+        stats_l.append(dfc[sp].mad() / dfc[sp].median())
+        stats_d[sp] = stats_l
+
+    stats = pd.DataFrame(stats_d)
+    global QCSTATS
+    load_resource("QCSTATS")
+    QCSTATS = pd.concat([QCSTATS, stats])
+    QCSTATS = QCSTATS.drop_duplicates(subset=["Plate", "Stat"], keep="last")
+    QCSTATS = QCSTATS[["Plate", "Stat"] + stats_parm]
+    QCSTATS.to_csv(cp_config["Paths"]["QCStatsPath"], sep="\t", index=False)
+    print_log(df, "qc_stats")
 
 
 def relevant_parameters(df, ctrls_std_rel_min=0.001,
