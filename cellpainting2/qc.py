@@ -14,7 +14,9 @@ Uses Holoviews and its Bokeh backend for visualization.
 import os.path as op
 
 import pandas as pd
+import numpy as np
 
+import matplotlib as mpl
 import holoviews as hv
 hv.extension("bokeh")
 from bokeh.models import HoverTool
@@ -61,7 +63,10 @@ def process_plate_for_qc(plate_full_name, structures=True):
     ds_plate = cpp.read_csv(op.join(src_dir, "Results.tsv")).compute()
     ds_plate = ds_plate.group_on_well()
     ds_plate.position_from_well()  # inplace
-    ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))
+    if plate.name == "C2017-04":
+        print("* skipping Echo filter step.")
+    else:
+        ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))
     ds_plate.well_type_from_position()
 
     ds_plate.flag_toxic()
@@ -141,8 +146,66 @@ def view_plate(plate, parm="Activity",
     return scatter_plot(opts)
 
 
+def ecdf(data, formal=False, x_range=None):
+    """
+    taken from the "DataFramed" podcast, episode 14 (https://www.datacamp.com/community/podcast/text-mining-nlproc)
+    code: https://github.com/justinbois/dataframed-plot-examples/blob/master/ecdf.ipynb
+
+    Get x, y, values of an ECDF for plotting.
+
+    Parameters
+    ----------
+    data : ndarray
+        One dimensional Numpay array with data.
+    formal : bool, default False
+        If True, generate x and y values for formal ECDF (staircase). If
+        False, generate x and y values for ECDF as dots.
+    x_range : 2-tuple, default None
+        If not None and `formal` is True, then specifies range of plot
+        on x-axis.
+
+    Returns
+    -------
+    x : ndarray
+        x-values for plot
+    y : ndarray
+        y-values for plot
+    """
+    x = np.sort(data)
+    y = np.arange(1, len(data) + 1) / len(data)
+
+    if formal:
+        # Set up output arrays
+        x_formal = np.empty(2 * (len(x) + 1))
+        y_formal = np.empty(2 * (len(x) + 1))
+
+        # y-values for steps
+        y_formal[:2] = 0
+        y_formal[2::2] = y
+        y_formal[3::2] = y
+
+        # x- values for steps
+        x_formal[0] = x[0]
+        x_formal[1] = x[0]
+        x_formal[2::2] = x
+        x_formal[3:-1:2] = x[1:]
+        x_formal[-1] = x[-1]
+
+        if x_range is not None:
+            if np.all(x >= x_range[0]) and np.all(x <= x_range[1]):
+                x_formal = np.concatenate(((x_range[0],), x_formal, (x_range[1],)))
+                y_formal = np.concatenate(((0,), y_formal, (1,)))
+            else:
+                raise RuntimeError('Some data values outside of `x_range`.')
+
+        return x_formal, y_formal
+    else:
+        return x, y
+
+
 def view_control_stats(full_plate_name):
     assert isinstance(full_plate_name, str), "`full_plate_name` has to be the full plate name"
+    what_stats = ["Min_rel", "Max_rel", "MAD_rel"]
     qc_stats = cpp.read_resource("QCSTATS")
     plate_stats = qc_stats[qc_stats["Plate"] == full_plate_name]
     melt = plate_stats.copy()
@@ -151,10 +214,20 @@ def view_control_stats(full_plate_name):
                    var_name="Parameter", value_name="Value")
     melt = melt.reset_index().drop("index", axis=1)
     title = "{} Controls Stats".format(full_plate_name)
-    # boxwhisker = hv.BoxWhisker(piv, ['', 'origin'], 'mpg', label=title)
-    boxwhisker = hv.BoxWhisker(melt, "Stat", "Value", label=title)
+    df_d = {"Stat": [], "x": [], "ECDF": []}
+    for stat in what_stats:
+        x, y = ecdf(melt.loc[(melt['Stat'] == stat), 'Value'])
+        df_d["Stat"].extend([stat] * len(x))
+        df_d["x"].extend(x)
+        df_d["ECDF"].extend(y)
+    data = pd.DataFrame(df_d)
 
-    plot_opts = dict(show_legend=False, width=300, height=450, toolbar='right')
-    # style = dict(color='')
-    boxwhisker = boxwhisker.redim.range(Value=(0, 1))
-    return boxwhisker(plot=plot_opts)  # , style=style)
+    cmap_ecdf = mpl.colors.ListedColormap(colors=["#e5ae38", "#fc4f30", "#30a2da"])  #, "#55aa00"])
+    plot_opts = dict(show_legend=True, width=350, height=350, toolbar='right',
+                     color_index=2, legend_position="bottom_right")
+    plot_styles = dict(size=5, cmap=cmap_ecdf)
+    vdims = ["ECDF", "Stat"]
+    ecdf_plot = hv.Scatter(
+        data, "x", vdims=vdims, label=title,
+    ).redim.range(x=(0, 1), ECDF=(0, 1.02)).redim.label(x='Deviation from Median')
+    return ecdf_plot(plot=plot_opts, style=plot_styles)

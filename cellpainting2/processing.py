@@ -1179,15 +1179,14 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
 
 
 def qc_stats(df):
-    num_stats = 3
+    what_stats = ["Min_rel", "Max_rel", "MAD_rel"]  # , "Min_rel", "Max_rel", "MAD_rel"],
     plate_name = df["Plate"].values[0]
     stats_parm = ["Count_Cells"] + ACT_PROF_PARAMETERS
     dfc = df[df["WellType"] == "Control"]
     dfc = dfc[stats_parm].copy()
     stats_d = {
-        "Plate": [plate_name] * num_stats,
-        # "Stat": ["Min", "Max", "Median", "MAD", "Min_rel", "Max_rel", "MAD_rel"],
-        "Stat": ["Min_rel", "Max_rel", "MAD_rel"],
+        "Plate": [plate_name] * len(what_stats),
+        "Stat": what_stats,
     }
     for sp in stats_parm:
         stats_l = []
