@@ -222,7 +222,7 @@ def view_control_stats(full_plate_name):
         df_d["ECDF"].extend(y)
     data = pd.DataFrame(df_d)
 
-    cmap_ecdf = mpl.colors.ListedColormap(colors=["#e5ae38", "#fc4f30", "#30a2da"])  #, "#55aa00"])
+    cmap_ecdf = mpl.colors.ListedColormap(colors=["#e5ae38", "#fc4f30", "#30a2da"])  # , "#55aa00"])
     plot_opts = dict(show_legend=True, width=350, height=350, toolbar='right',
                      color_index=2, legend_position="bottom_right")
     plot_styles = dict(size=5, cmap=cmap_ecdf)
