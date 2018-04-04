@@ -39,6 +39,8 @@ LIMIT_CELL_COUNT_L = cp_config["Cutoffs"]["LimitCellCountL"]
 LIMIT_SIMILARITY_H = cp_config["Cutoffs"]["LimitSimilarityH"]
 LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
 
+IGNORE_SKIPPED = cp_config["Options"]["IgnoreSkipped"]
+
 
 def add_images(df):
     """Adds an Image column to the MolFrame, used for structure tooltips in plotting.
@@ -55,6 +57,13 @@ def add_images(df):
     return result
 
 
+def contained_in_list(s, lst):
+    for el in lst:
+        if el in s:
+            return True
+    return False
+
+
 def process_plate_for_qc(plate_full_name, structures=True):
     plate = cpt.split_plate_name(plate_full_name)
     src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
@@ -63,7 +72,7 @@ def process_plate_for_qc(plate_full_name, structures=True):
     ds_plate = cpp.read_csv(op.join(src_dir, "Results.tsv")).compute()
     ds_plate = ds_plate.group_on_well()
     ds_plate.position_from_well()  # inplace
-    if plate.name == "C2017-04":
+    if contained_in_list(plate.name, IGNORE_SKIPPED):
         print("* skipping Echo filter step.")
     else:
         ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))

@@ -80,6 +80,9 @@ Options:
     InPlace: True    # whether to modifiy DataFrames inplace or not.
     ChunkSize: 4000  # Dask chunksize
     NPartitions: 10  # Dask npartitions
+    IgnoreSkipped:   # Ignore skipped wells for plates containing these strings:
+        - "C2017-04"
+        - "DMSO"
 
 Parameters:
     - Median_Cells_AreaShape_Area
