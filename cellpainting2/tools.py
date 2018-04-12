@@ -125,6 +125,25 @@ def profile_sim_tanimoto(p1, p2):
     return result
 
 
+def profile_sim_tanimoto_weighted(p1, p2, cutoff):
+    neg_cutoff = cutoff * (-1)
+    p_len = len(p1)
+    assert p_len == len(p2), "profiles must be of same length!"
+    matching = 0.0
+    significant = 0.0
+    for idx in range(p_len):
+        val1 = p1[idx]
+        val2 = p2[idx]
+        val1_abs = abs(val1)
+        val2_abs = abs(val2)
+        if (val1 <= neg_cutoff and val2 <= neg_cutoff) or (val1 >= cutoff and val2 >= cutoff):
+            matching += max(val1_abs, val2_abs) - abs(val1_abs - val2_abs)
+        if val1_abs >= cutoff or val2_abs >= cutoff:
+            significant += max(val1_abs, val2_abs)
+    result = matching / significant
+    return result
+
+
 def subtract_profiles(prof1, prof2):
     """Subtract prof2 from prof1. A new profile is returned."""
     prof1_len = len(prof1)

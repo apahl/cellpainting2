@@ -1492,7 +1492,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None, method="dist_cor
     print_log(df, "update similar")
 
 
-def well_id_similarity(df1, well_id1, df2, well_id2, method="dist_corr"):
+def well_id_similarity(df1, well_id1, df2, well_id2, method="dist_corr", cutoff=1.585):
     """Calculate the similarity of the activity profiles from two compounds
     (identified by `Well_Id`). Returns value between 0 .. 1"""
     act1 = df1[df1["Well_Id"] == well_id1][ACT_PROF_PARAMETERS].values[0]
@@ -1500,6 +1500,9 @@ def well_id_similarity(df1, well_id1, df2, well_id2, method="dist_corr"):
     if "dist" in method.lower():
         print("- Using Distance Correlation similarity.")
         return round(cpt.profile_sim_dist_corr(act1, act2), 3)
+    elif "weight" in method.lower():
+        print("- Using Weighted Tanimoto similarity.")
+        return round(cpt.profile_sim_tanimoto_weighted(act1, act2, cutoff=cutoff), 3)
     else:
         print("- Using Tanimoto similarity.")
         return round(cpt.profile_sim_tanimoto(act1, act2), 3)

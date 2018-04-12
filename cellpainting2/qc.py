@@ -64,7 +64,7 @@ def contained_in_list(s, lst):
     return False
 
 
-def process_plate_for_qc(plate_full_name, structures=True):
+def process_plate_for_qc(plate_full_name, structures=True, act_cutoff=1.585):
     plate = cpt.split_plate_name(plate_full_name)
     src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
     src_dir = src_templ.format(plate.date, plate.name)
@@ -82,7 +82,8 @@ def process_plate_for_qc(plate_full_name, structures=True):
     # print(sorted(set(ds_plate.keys())  - set(cpp.ACT_PROF_PARAMETERS))))
     ds_plate.data["Plate"] = "{}-{}".format(plate.date, plate.name)
     ds_plate.qc_stats()
-    ds_plate = ds_plate.activity_profile(act_cutoff=1.585)
+    # ds_plate = ds_plate.activity_profile(act_cutoff=1.585)  # current production cutoff
+    ds_plate = ds_plate.activity_profile(act_cutoff=act_cutoff)
 
     ds_plate = ds_plate.keep_cols(cpp.FINAL_PARAMETERS)  # JUST FOR QC
 
@@ -108,6 +109,9 @@ def struct_hover():
                 <div>
                     <img src="@Image" alt="Mol" width="70%"><br>
                 <div>
+                <div>
+                    <span style="font-size: 12px; font-weight: bold;">@Metadata_Well</span>
+                </div>
                 <div>
                     <span style="font-size: 12px; font-weight: bold;">@{}</span>
                     <span style="font-size: 12px;"> (@Producer)</span>
@@ -141,7 +145,7 @@ def view_plate(plate, parm="Activity",
         "colorbar_opts": {"width": 10},
     }
     plot_styles = {"size": 20, "cmap": cmap}
-    vdims = ["plateRow", id_prop, "Image", "Producer", "Activity", "Rel_Cell_Count"]
+    vdims = ["plateRow", id_prop, "Image", "Producer", "Activity", "Rel_Cell_Count", "Metadata_Well"]
     if parm == "Activity" or parm == "Induction":
         plot_options["color_index"] = 5
     else:
