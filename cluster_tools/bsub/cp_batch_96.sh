@@ -2,8 +2,8 @@
 
 #BSUB -J cp96[1-96]
 #BSUB -q mpi
-#BSUB -o $HOME/cp/jobout/cp96_%J.txt
-#BSUB -e $HOME/cp/jobout/cp96_%J.txt
+#BSUB -o /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt
+#BSUB -e /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt
 
 CPPIPE=171213_mpc
 FOLDER=${1%/}  # removes trailing slash, if there is one
