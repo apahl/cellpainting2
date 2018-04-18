@@ -83,14 +83,11 @@ Options:
     InPlace: True    # whether to modifiy DataFrames inplace or not.
     ChunkSize: 4000  # Dask chunksize
     NPartitions: 10  # Dask npartitions
-    IgnoreSkipped:   # Ignore skipped wells for plates containing these strings:
-        - "C2017-04"
+    IgnoreSkipped:   # Ignore skipped wells for plates containing these strings: "C2017-04"
         - "DMSO"
 
 Parameters:
     - Median_Cells_AreaShape_Area
-    - Median_Cells_AreaShape_MajorAxisLength
-    - Median_Cells_AreaShape_MaxFeretDiameter
     - Median_Cells_AreaShape_MaximumRadius
     - Median_Cells_AreaShape_MeanRadius
     - Median_Cells_AreaShape_MedianRadius
@@ -99,42 +96,53 @@ Parameters:
     - Median_Cells_AreaShape_Perimeter
     - Median_Cells_Correlation_Correlation_ER_Ph_golgi
     - Median_Cells_Correlation_Correlation_ER_Syto
+    - Median_Cells_Correlation_Correlation_Hoechst_ER
+    - Median_Cells_Correlation_Correlation_Hoechst_Mito
+    - Median_Cells_Correlation_Correlation_Hoechst_Ph_golgi
+    - Median_Cells_Correlation_Correlation_Hoechst_Syto
+    - Median_Cells_Correlation_Correlation_Mito_ER
     - Median_Cells_Correlation_Correlation_Mito_Ph_golgi
+    - Median_Cells_Correlation_Correlation_Mito_Syto
+    - Median_Cells_Correlation_Correlation_Syto_Ph_golgi
     - Median_Cells_Correlation_K_ER_Syto
-    - Median_Cells_Correlation_K_Hoechst_ER
-    - Median_Cells_Correlation_K_Hoechst_Mito
     - Median_Cells_Correlation_K_Hoechst_Ph_golgi
     - Median_Cells_Correlation_K_Hoechst_Syto
     - Median_Cells_Correlation_K_Mito_Hoechst
-    - Median_Cells_Correlation_K_Mito_Ph_golgi
-    - Median_Cells_Correlation_K_Mito_Syto
-    - Median_Cells_Correlation_K_Ph_golgi_Mito
     - Median_Cells_Correlation_K_Ph_golgi_Syto
     - Median_Cells_Correlation_K_Syto_ER
     - Median_Cells_Correlation_K_Syto_Hoechst
-    - Median_Cells_Correlation_K_Syto_Mito
     - Median_Cells_Correlation_K_Syto_Ph_golgi
     - Median_Cells_Correlation_Manders_ER_Hoechst
     - Median_Cells_Correlation_Manders_ER_Syto
     - Median_Cells_Correlation_Manders_Mito_Hoechst
     - Median_Cells_Correlation_Manders_Ph_golgi_Hoechst
     - Median_Cells_Correlation_Manders_Syto_Hoechst
-    - Median_Cells_Correlation_Overlap_ER_Syto
+    - Median_Cells_Correlation_Overlap_Hoechst_ER
+    - Median_Cells_Correlation_Overlap_Hoechst_Mito
+    - Median_Cells_Correlation_Overlap_Hoechst_Ph_golgi
+    - Median_Cells_Correlation_Overlap_Hoechst_Syto
     - Median_Cells_Correlation_Overlap_Mito_ER
-    - Median_Cells_Correlation_RWC_ER_Hoechst
+    - Median_Cells_Correlation_Overlap_Mito_Ph_golgi
+    - Median_Cells_Correlation_Overlap_Mito_Syto
+    - Median_Cells_Correlation_Overlap_Syto_Ph_golgi
+    - Median_Cells_Correlation_RWC_ER_Mito
     - Median_Cells_Correlation_RWC_Hoechst_ER
     - Median_Cells_Correlation_RWC_Hoechst_Mito
+    - Median_Cells_Correlation_RWC_Hoechst_Ph_golgi
+    - Median_Cells_Correlation_RWC_Hoechst_Syto
     - Median_Cells_Correlation_RWC_Mito_Hoechst
-    - Median_Cells_Correlation_RWC_Mito_Ph_golgi
     - Median_Cells_Correlation_RWC_Mito_Syto
     - Median_Cells_Correlation_RWC_Ph_golgi_Hoechst
+    - Median_Cells_Correlation_RWC_Ph_golgi_Mito
+    - Median_Cells_Correlation_RWC_Ph_golgi_Syto
     - Median_Cells_Correlation_RWC_Syto_Hoechst
     - Median_Cells_Correlation_RWC_Syto_Mito
-    - Median_Cells_Correlation_RWC_Syto_Ph_golgi
     - Median_Cells_Granularity_1_Mito
     - Median_Cells_Granularity_1_Ph_golgi
     - Median_Cells_Granularity_1_Syto
-    - Median_Cells_Granularity_2_ER
+    - Median_Cells_Granularity_2_Mito
+    - Median_Cells_Granularity_2_Ph_golgi
+    - Median_Cells_Granularity_2_Syto
     - Median_Cells_Granularity_3_ER
     - Median_Cells_Granularity_3_Mito
     - Median_Cells_Granularity_3_Ph_golgi
@@ -142,52 +150,45 @@ Parameters:
     - Median_Cells_Granularity_4_Mito
     - Median_Cells_Granularity_5_Mito
     - Median_Cells_Intensity_IntegratedIntensityEdge_Hoechst
-    - Median_Cells_Intensity_IntegratedIntensityEdge_Mito
     - Median_Cells_Intensity_IntegratedIntensity_Syto
-    - Median_Cells_Intensity_LowerQuartileIntensity_Hoechst
     - Median_Cells_Intensity_LowerQuartileIntensity_Mito
     - Median_Cells_Intensity_MADIntensity_ER
+    - Median_Cells_Intensity_MADIntensity_Hoechst
     - Median_Cells_Intensity_MADIntensity_Mito
     - Median_Cells_Intensity_MADIntensity_Ph_golgi
     - Median_Cells_Intensity_MADIntensity_Syto
-    - Median_Cells_Intensity_MaxIntensityEdge_ER
     - Median_Cells_Intensity_MaxIntensityEdge_Mito
+    - Median_Cells_Intensity_MaxIntensityEdge_Syto
     - Median_Cells_Intensity_MaxIntensity_Hoechst
+    - Median_Cells_Intensity_MaxIntensity_Mito
+    - Median_Cells_Intensity_MaxIntensity_Ph_golgi
     - Median_Cells_Intensity_MeanIntensityEdge_Hoechst
     - Median_Cells_Intensity_MeanIntensityEdge_Mito
-    - Median_Cells_Intensity_MeanIntensity_ER
     - Median_Cells_Intensity_MeanIntensity_Hoechst
     - Median_Cells_Intensity_MeanIntensity_Mito
     - Median_Cells_Intensity_MeanIntensity_Syto
     - Median_Cells_Intensity_MedianIntensity_ER
-    - Median_Cells_Intensity_MedianIntensity_Hoechst
     - Median_Cells_Intensity_MedianIntensity_Mito
     - Median_Cells_Intensity_MedianIntensity_Syto
-    - Median_Cells_Intensity_MinIntensityEdge_Hoechst
     - Median_Cells_Intensity_MinIntensityEdge_Mito
     - Median_Cells_Intensity_MinIntensityEdge_Syto
-    - Median_Cells_Intensity_MinIntensity_Hoechst
     - Median_Cells_Intensity_MinIntensity_Mito
     - Median_Cells_Intensity_MinIntensity_Syto
     - Median_Cells_Intensity_StdIntensityEdge_ER
-    - Median_Cells_Intensity_StdIntensityEdge_Hoechst
     - Median_Cells_Intensity_StdIntensityEdge_Mito
-    - Median_Cells_Intensity_StdIntensityEdge_Ph_golgi
+    - Median_Cells_Intensity_StdIntensityEdge_Syto
     - Median_Cells_Intensity_StdIntensity_Hoechst
     - Median_Cells_Intensity_StdIntensity_Mito
+    - Median_Cells_Intensity_StdIntensity_Ph_golgi
     - Median_Cells_Intensity_StdIntensity_Syto
+    - Median_Cells_Intensity_UpperQuartileIntensity_Hoechst
     - Median_Cells_Intensity_UpperQuartileIntensity_Mito
     - Median_Cells_Intensity_UpperQuartileIntensity_Syto
-    - Median_Cells_RadialDistribution_FracAtD_Mito_1of4
-    - Median_Cells_RadialDistribution_FracAtD_Mito_2of4
     - Median_Cells_RadialDistribution_FracAtD_Mito_3of4
     - Median_Cells_RadialDistribution_FracAtD_Mito_4of4
     - Median_Cells_RadialDistribution_FracAtD_Ph_golgi_1of4
     - Median_Cells_RadialDistribution_FracAtD_Ph_golgi_2of4
-    - Median_Cells_RadialDistribution_FracAtD_Ph_golgi_3of4
     - Median_Cells_RadialDistribution_FracAtD_Ph_golgi_4of4
-    - Median_Cells_RadialDistribution_FracAtD_Syto_1of4
-    - Median_Cells_RadialDistribution_FracAtD_Syto_2of4
     - Median_Cells_RadialDistribution_MeanFrac_Mito_1of4
     - Median_Cells_RadialDistribution_MeanFrac_Mito_2of4
     - Median_Cells_RadialDistribution_MeanFrac_Mito_3of4
@@ -196,18 +197,11 @@ Parameters:
     - Median_Cells_RadialDistribution_MeanFrac_Ph_golgi_2of4
     - Median_Cells_RadialDistribution_MeanFrac_Ph_golgi_3of4
     - Median_Cells_RadialDistribution_MeanFrac_Ph_golgi_4of4
-    - Median_Cells_RadialDistribution_RadialCV_Mito_2of4
     - Median_Cells_RadialDistribution_RadialCV_Mito_3of4
     - Median_Cells_RadialDistribution_RadialCV_Mito_4of4
     - Median_Cells_RadialDistribution_RadialCV_Ph_golgi_1of4
     - Median_Cells_RadialDistribution_RadialCV_Ph_golgi_2of4
     - Median_Cells_RadialDistribution_RadialCV_Ph_golgi_3of4
-    - Median_Cells_RadialDistribution_RadialCV_Syto_4of4
-    - Median_Cells_Texture_AngularSecondMoment_ER_3_00
-    - Median_Cells_Texture_AngularSecondMoment_ER_5_00
-    - Median_Cells_Texture_AngularSecondMoment_Hoechst_10_00
-    - Median_Cells_Texture_AngularSecondMoment_Hoechst_3_00
-    - Median_Cells_Texture_AngularSecondMoment_Hoechst_5_00
     - Median_Cells_Texture_AngularSecondMoment_Mito_10_00
     - Median_Cells_Texture_AngularSecondMoment_Mito_3_00
     - Median_Cells_Texture_AngularSecondMoment_Mito_5_00
@@ -217,27 +211,41 @@ Parameters:
     - Median_Cells_Texture_AngularSecondMoment_Syto_10_00
     - Median_Cells_Texture_AngularSecondMoment_Syto_3_00
     - Median_Cells_Texture_AngularSecondMoment_Syto_5_00
-    - Median_Cells_Texture_Contrast_ER_10_00
     - Median_Cells_Texture_Contrast_ER_3_00
     - Median_Cells_Texture_Contrast_ER_5_00
+    - Median_Cells_Texture_Contrast_Hoechst_10_00
+    - Median_Cells_Texture_Contrast_Hoechst_3_00
+    - Median_Cells_Texture_Contrast_Hoechst_5_00
+    - Median_Cells_Texture_Contrast_Mito_10_00
+    - Median_Cells_Texture_Contrast_Mito_3_00
+    - Median_Cells_Texture_Contrast_Mito_5_00
+    - Median_Cells_Texture_Contrast_Ph_golgi_10_00
+    - Median_Cells_Texture_Contrast_Ph_golgi_3_00
+    - Median_Cells_Texture_Contrast_Ph_golgi_5_00
     - Median_Cells_Texture_Contrast_Syto_10_00
+    - Median_Cells_Texture_Contrast_Syto_3_00
+    - Median_Cells_Texture_Contrast_Syto_5_00
     - Median_Cells_Texture_Correlation_ER_10_00
     - Median_Cells_Texture_Correlation_ER_3_00
     - Median_Cells_Texture_Correlation_ER_5_00
     - Median_Cells_Texture_Correlation_Mito_10_00
     - Median_Cells_Texture_Correlation_Mito_3_00
     - Median_Cells_Texture_Correlation_Mito_5_00
+    - Median_Cells_Texture_Correlation_Ph_golgi_10_00
+    - Median_Cells_Texture_Correlation_Ph_golgi_3_00
+    - Median_Cells_Texture_Correlation_Ph_golgi_5_00
     - Median_Cells_Texture_Correlation_Syto_10_00
-    - Median_Cells_Texture_Correlation_Syto_3_00
     - Median_Cells_Texture_Correlation_Syto_5_00
-    - Median_Cells_Texture_DifferenceEntropy_ER_3_00
-    - Median_Cells_Texture_DifferenceEntropy_ER_5_00
     - Median_Cells_Texture_DifferenceEntropy_Hoechst_10_00
-    - Median_Cells_Texture_DifferenceEntropy_Hoechst_3_00
-    - Median_Cells_Texture_DifferenceEntropy_Hoechst_5_00
     - Median_Cells_Texture_DifferenceEntropy_Mito_10_00
+    - Median_Cells_Texture_DifferenceEntropy_Mito_3_00
+    - Median_Cells_Texture_DifferenceEntropy_Mito_5_00
+    - Median_Cells_Texture_DifferenceEntropy_Ph_golgi_10_00
+    - Median_Cells_Texture_DifferenceEntropy_Ph_golgi_3_00
+    - Median_Cells_Texture_DifferenceEntropy_Ph_golgi_5_00
     - Median_Cells_Texture_DifferenceEntropy_Syto_10_00
-    - Median_Cells_Texture_DifferenceVariance_Hoechst_3_00
+    - Median_Cells_Texture_DifferenceEntropy_Syto_3_00
+    - Median_Cells_Texture_DifferenceEntropy_Syto_5_00
     - Median_Cells_Texture_DifferenceVariance_Mito_10_00
     - Median_Cells_Texture_DifferenceVariance_Mito_3_00
     - Median_Cells_Texture_DifferenceVariance_Mito_5_00
@@ -247,11 +255,6 @@ Parameters:
     - Median_Cells_Texture_DifferenceVariance_Syto_10_00
     - Median_Cells_Texture_DifferenceVariance_Syto_3_00
     - Median_Cells_Texture_DifferenceVariance_Syto_5_00
-    - Median_Cells_Texture_Entropy_ER_3_00
-    - Median_Cells_Texture_Entropy_ER_5_00
-    - Median_Cells_Texture_Entropy_Hoechst_10_00
-    - Median_Cells_Texture_Entropy_Hoechst_3_00
-    - Median_Cells_Texture_Entropy_Hoechst_5_00
     - Median_Cells_Texture_Entropy_Mito_10_00
     - Median_Cells_Texture_Entropy_Mito_3_00
     - Median_Cells_Texture_Entropy_Mito_5_00
@@ -261,26 +264,21 @@ Parameters:
     - Median_Cells_Texture_Entropy_Syto_10_00
     - Median_Cells_Texture_Entropy_Syto_3_00
     - Median_Cells_Texture_Entropy_Syto_5_00
-    - Median_Cells_Texture_InfoMeas2_ER_5_00
-    - Median_Cells_Texture_InfoMeas2_Hoechst_10_00
     - Median_Cells_Texture_InfoMeas2_Ph_golgi_10_00
     - Median_Cells_Texture_InfoMeas2_Ph_golgi_3_00
     - Median_Cells_Texture_InfoMeas2_Ph_golgi_5_00
     - Median_Cells_Texture_InverseDifferenceMoment_ER_10_00
     - Median_Cells_Texture_InverseDifferenceMoment_ER_3_00
     - Median_Cells_Texture_InverseDifferenceMoment_ER_5_00
-    - Median_Cells_Texture_InverseDifferenceMoment_Hoechst_10_00
-    - Median_Cells_Texture_InverseDifferenceMoment_Hoechst_3_00
-    - Median_Cells_Texture_InverseDifferenceMoment_Hoechst_5_00
     - Median_Cells_Texture_InverseDifferenceMoment_Mito_10_00
+    - Median_Cells_Texture_InverseDifferenceMoment_Mito_3_00
     - Median_Cells_Texture_InverseDifferenceMoment_Mito_5_00
     - Median_Cells_Texture_InverseDifferenceMoment_Ph_golgi_10_00
     - Median_Cells_Texture_InverseDifferenceMoment_Ph_golgi_3_00
     - Median_Cells_Texture_InverseDifferenceMoment_Ph_golgi_5_00
     - Median_Cells_Texture_InverseDifferenceMoment_Syto_10_00
-    - Median_Cells_Texture_SumAverage_ER_10_00
-    - Median_Cells_Texture_SumAverage_ER_3_00
-    - Median_Cells_Texture_SumAverage_ER_5_00
+    - Median_Cells_Texture_InverseDifferenceMoment_Syto_3_00
+    - Median_Cells_Texture_InverseDifferenceMoment_Syto_5_00
     - Median_Cells_Texture_SumAverage_Hoechst_10_00
     - Median_Cells_Texture_SumAverage_Hoechst_3_00
     - Median_Cells_Texture_SumAverage_Hoechst_5_00
@@ -290,9 +288,6 @@ Parameters:
     - Median_Cells_Texture_SumAverage_Syto_10_00
     - Median_Cells_Texture_SumAverage_Syto_3_00
     - Median_Cells_Texture_SumAverage_Syto_5_00
-    - Median_Cells_Texture_SumEntropy_Hoechst_10_00
-    - Median_Cells_Texture_SumEntropy_Hoechst_3_00
-    - Median_Cells_Texture_SumEntropy_Hoechst_5_00
     - Median_Cells_Texture_SumEntropy_Mito_10_00
     - Median_Cells_Texture_SumEntropy_Mito_3_00
     - Median_Cells_Texture_SumEntropy_Mito_5_00
@@ -306,90 +301,120 @@ Parameters:
     - Median_Cells_Texture_SumVariance_Hoechst_3_00
     - Median_Cells_Texture_SumVariance_Hoechst_5_00
     - Median_Cells_Texture_SumVariance_Mito_10_00
+    - Median_Cells_Texture_SumVariance_Mito_3_00
     - Median_Cells_Texture_SumVariance_Mito_5_00
-    - Median_Cells_Texture_SumVariance_Syto_10_00
+    - Median_Cells_Texture_SumVariance_Ph_golgi_10_00
+    - Median_Cells_Texture_SumVariance_Ph_golgi_3_00
+    - Median_Cells_Texture_SumVariance_Ph_golgi_5_00
     - Median_Cells_Texture_SumVariance_Syto_3_00
     - Median_Cells_Texture_SumVariance_Syto_5_00
     - Median_Cells_Texture_Variance_Hoechst_10_00
     - Median_Cells_Texture_Variance_Hoechst_3_00
     - Median_Cells_Texture_Variance_Hoechst_5_00
+    - Median_Cells_Texture_Variance_Mito_10_00
+    - Median_Cells_Texture_Variance_Mito_3_00
+    - Median_Cells_Texture_Variance_Mito_5_00
+    - Median_Cells_Texture_Variance_Ph_golgi_10_00
+    - Median_Cells_Texture_Variance_Ph_golgi_3_00
+    - Median_Cells_Texture_Variance_Ph_golgi_5_00
     - Median_Cells_Texture_Variance_Syto_10_00
     - Median_Cells_Texture_Variance_Syto_3_00
     - Median_Cells_Texture_Variance_Syto_5_00
     - Median_Cytoplasm_AreaShape_Area
-    - Median_Cytoplasm_AreaShape_MajorAxisLength
-    - Median_Cytoplasm_AreaShape_MaxFeretDiameter
-    - Median_Cytoplasm_AreaShape_MaximumRadius
     - Median_Cytoplasm_AreaShape_MeanRadius
     - Median_Cytoplasm_AreaShape_MinFeretDiameter
     - Median_Cytoplasm_AreaShape_MinorAxisLength
     - Median_Cytoplasm_AreaShape_Perimeter
     - Median_Cytoplasm_Correlation_Correlation_ER_Ph_golgi
+    - Median_Cytoplasm_Correlation_Correlation_ER_Syto
     - Median_Cytoplasm_Correlation_Correlation_Hoechst_ER
     - Median_Cytoplasm_Correlation_Correlation_Hoechst_Mito
+    - Median_Cytoplasm_Correlation_Correlation_Hoechst_Ph_golgi
     - Median_Cytoplasm_Correlation_Correlation_Hoechst_Syto
     - Median_Cytoplasm_Correlation_Correlation_Mito_ER
     - Median_Cytoplasm_Correlation_Correlation_Mito_Ph_golgi
+    - Median_Cytoplasm_Correlation_Correlation_Mito_Syto
     - Median_Cytoplasm_Correlation_Correlation_Syto_Ph_golgi
     - Median_Cytoplasm_Correlation_K_ER_Syto
     - Median_Cytoplasm_Correlation_K_Hoechst_ER
     - Median_Cytoplasm_Correlation_K_Hoechst_Mito
     - Median_Cytoplasm_Correlation_K_Hoechst_Ph_golgi
+    - Median_Cytoplasm_Correlation_K_Hoechst_Syto
     - Median_Cytoplasm_Correlation_K_Mito_Hoechst
     - Median_Cytoplasm_Correlation_K_Mito_Syto
     - Median_Cytoplasm_Correlation_K_Ph_golgi_Hoechst
     - Median_Cytoplasm_Correlation_K_Ph_golgi_Syto
+    - Median_Cytoplasm_Correlation_K_Syto_ER
+    - Median_Cytoplasm_Correlation_K_Syto_Hoechst
     - Median_Cytoplasm_Correlation_K_Syto_Mito
     - Median_Cytoplasm_Correlation_K_Syto_Ph_golgi
+    - Median_Cytoplasm_Correlation_Manders_ER_Hoechst
+    - Median_Cytoplasm_Correlation_Manders_ER_Syto
+    - Median_Cytoplasm_Correlation_Manders_Hoechst_Syto
     - Median_Cytoplasm_Correlation_Manders_Mito_Hoechst
     - Median_Cytoplasm_Correlation_Manders_Mito_Syto
     - Median_Cytoplasm_Correlation_Manders_Ph_golgi_Hoechst
     - Median_Cytoplasm_Correlation_Manders_Ph_golgi_Syto
-    - Median_Cytoplasm_Correlation_Manders_Syto_ER
+    - Median_Cytoplasm_Correlation_Manders_Syto_Hoechst
     - Median_Cytoplasm_Correlation_Overlap_ER_Syto
-    - Median_Cytoplasm_Correlation_Overlap_Hoechst_Syto
-    - Median_Cytoplasm_Correlation_Overlap_Mito_ER
+    - Median_Cytoplasm_Correlation_Overlap_Hoechst_ER
+    - Median_Cytoplasm_Correlation_Overlap_Hoechst_Mito
+    - Median_Cytoplasm_Correlation_Overlap_Hoechst_Ph_golgi
+    - Median_Cytoplasm_Correlation_Overlap_Mito_Ph_golgi
+    - Median_Cytoplasm_Correlation_Overlap_Mito_Syto
+    - Median_Cytoplasm_Correlation_Overlap_Syto_Ph_golgi
+    - Median_Cytoplasm_Correlation_RWC_ER_Hoechst
+    - Median_Cytoplasm_Correlation_RWC_ER_Mito
     - Median_Cytoplasm_Correlation_RWC_Hoechst_ER
     - Median_Cytoplasm_Correlation_RWC_Hoechst_Mito
     - Median_Cytoplasm_Correlation_RWC_Hoechst_Ph_golgi
     - Median_Cytoplasm_Correlation_RWC_Hoechst_Syto
-    - Median_Cytoplasm_Correlation_RWC_Mito_Ph_golgi
+    - Median_Cytoplasm_Correlation_RWC_Mito_Hoechst
+    - Median_Cytoplasm_Correlation_RWC_Mito_Syto
+    - Median_Cytoplasm_Correlation_RWC_Ph_golgi_Hoechst
+    - Median_Cytoplasm_Correlation_RWC_Ph_golgi_Mito
+    - Median_Cytoplasm_Correlation_RWC_Ph_golgi_Syto
+    - Median_Cytoplasm_Correlation_RWC_Syto_Hoechst
     - Median_Cytoplasm_Correlation_RWC_Syto_Mito
     - Median_Cytoplasm_Granularity_1_Mito
     - Median_Cytoplasm_Granularity_1_Ph_golgi
     - Median_Cytoplasm_Granularity_1_Syto
     - Median_Cytoplasm_Granularity_2_ER
+    - Median_Cytoplasm_Granularity_2_Mito
+    - Median_Cytoplasm_Granularity_2_Ph_golgi
     - Median_Cytoplasm_Granularity_3_ER
+    - Median_Cytoplasm_Granularity_3_Mito
+    - Median_Cytoplasm_Granularity_3_Ph_golgi
+    - Median_Cytoplasm_Granularity_3_Syto
     - Median_Cytoplasm_Granularity_4_Mito
     - Median_Cytoplasm_Granularity_4_Ph_golgi
     - Median_Cytoplasm_Granularity_5_Mito
     - Median_Cytoplasm_Granularity_5_Ph_golgi
     - Median_Cytoplasm_Intensity_IntegratedIntensity_Hoechst
     - Median_Cytoplasm_Intensity_IntegratedIntensity_Syto
-    - Median_Cytoplasm_Intensity_LowerQuartileIntensity_Hoechst
     - Median_Cytoplasm_Intensity_LowerQuartileIntensity_Mito
+    - Median_Cytoplasm_Intensity_MADIntensity_ER
+    - Median_Cytoplasm_Intensity_MADIntensity_Hoechst
+    - Median_Cytoplasm_Intensity_MADIntensity_Mito
     - Median_Cytoplasm_Intensity_MADIntensity_Ph_golgi
+    - Median_Cytoplasm_Intensity_MADIntensity_Syto
     - Median_Cytoplasm_Intensity_MaxIntensityEdge_Hoechst
     - Median_Cytoplasm_Intensity_MaxIntensityEdge_Mito
     - Median_Cytoplasm_Intensity_MaxIntensityEdge_Ph_golgi
     - Median_Cytoplasm_Intensity_MaxIntensityEdge_Syto
     - Median_Cytoplasm_Intensity_MaxIntensity_Hoechst
+    - Median_Cytoplasm_Intensity_MaxIntensity_Mito
+    - Median_Cytoplasm_Intensity_MaxIntensity_Ph_golgi
     - Median_Cytoplasm_Intensity_MaxIntensity_Syto
     - Median_Cytoplasm_Intensity_MeanIntensityEdge_Hoechst
     - Median_Cytoplasm_Intensity_MeanIntensityEdge_Mito
-    - Median_Cytoplasm_Intensity_MeanIntensityEdge_Syto
-    - Median_Cytoplasm_Intensity_MeanIntensity_ER
-    - Median_Cytoplasm_Intensity_MeanIntensity_Hoechst
     - Median_Cytoplasm_Intensity_MeanIntensity_Mito
     - Median_Cytoplasm_Intensity_MeanIntensity_Syto
     - Median_Cytoplasm_Intensity_MedianIntensity_ER
-    - Median_Cytoplasm_Intensity_MedianIntensity_Hoechst
     - Median_Cytoplasm_Intensity_MedianIntensity_Mito
     - Median_Cytoplasm_Intensity_MedianIntensity_Syto
-    - Median_Cytoplasm_Intensity_MinIntensityEdge_Hoechst
     - Median_Cytoplasm_Intensity_MinIntensityEdge_Mito
     - Median_Cytoplasm_Intensity_MinIntensityEdge_Syto
-    - Median_Cytoplasm_Intensity_MinIntensity_Hoechst
     - Median_Cytoplasm_Intensity_MinIntensity_Mito
     - Median_Cytoplasm_Intensity_MinIntensity_Syto
     - Median_Cytoplasm_Intensity_StdIntensityEdge_Hoechst
@@ -397,33 +422,31 @@ Parameters:
     - Median_Cytoplasm_Intensity_StdIntensityEdge_Ph_golgi
     - Median_Cytoplasm_Intensity_StdIntensityEdge_Syto
     - Median_Cytoplasm_Intensity_StdIntensity_Hoechst
+    - Median_Cytoplasm_Intensity_StdIntensity_Mito
+    - Median_Cytoplasm_Intensity_StdIntensity_Ph_golgi
     - Median_Cytoplasm_Intensity_StdIntensity_Syto
     - Median_Cytoplasm_Intensity_UpperQuartileIntensity_ER
-    - Median_Cytoplasm_Intensity_UpperQuartileIntensity_Hoechst
     - Median_Cytoplasm_Intensity_UpperQuartileIntensity_Mito
     - Median_Cytoplasm_Intensity_UpperQuartileIntensity_Syto
     - Median_Cytoplasm_RadialDistribution_MeanFrac_ER_1of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_ER_2of4
-    - Median_Cytoplasm_RadialDistribution_MeanFrac_ER_4of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_Mito_1of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_Mito_2of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_Mito_3of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_Mito_4of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_Ph_golgi_1of4
+    - Median_Cytoplasm_RadialDistribution_MeanFrac_Ph_golgi_2of4
     - Median_Cytoplasm_RadialDistribution_MeanFrac_Ph_golgi_3of4
+    - Median_Cytoplasm_RadialDistribution_MeanFrac_Ph_golgi_4of4
     - Median_Cytoplasm_RadialDistribution_RadialCV_Mito_1of4
     - Median_Cytoplasm_RadialDistribution_RadialCV_Mito_2of4
     - Median_Cytoplasm_RadialDistribution_RadialCV_Mito_3of4
     - Median_Cytoplasm_RadialDistribution_RadialCV_Mito_4of4
-    - Median_Cytoplasm_RadialDistribution_RadialCV_Ph_golgi_4of4
-    - Median_Cytoplasm_RadialDistribution_RadialCV_Syto_1of4
-    - Median_Cytoplasm_RadialDistribution_RadialCV_Syto_4of4
-    - Median_Cytoplasm_Texture_AngularSecondMoment_ER_10_00
+    - Median_Cytoplasm_RadialDistribution_RadialCV_Ph_golgi_1of4
+    - Median_Cytoplasm_RadialDistribution_RadialCV_Ph_golgi_2of4
+    - Median_Cytoplasm_RadialDistribution_RadialCV_Ph_golgi_3of4
     - Median_Cytoplasm_Texture_AngularSecondMoment_ER_3_00
     - Median_Cytoplasm_Texture_AngularSecondMoment_ER_5_00
-    - Median_Cytoplasm_Texture_AngularSecondMoment_Hoechst_10_00
-    - Median_Cytoplasm_Texture_AngularSecondMoment_Hoechst_3_00
-    - Median_Cytoplasm_Texture_AngularSecondMoment_Hoechst_5_00
     - Median_Cytoplasm_Texture_AngularSecondMoment_Mito_10_00
     - Median_Cytoplasm_Texture_AngularSecondMoment_Mito_3_00
     - Median_Cytoplasm_Texture_AngularSecondMoment_Mito_5_00
@@ -436,21 +459,32 @@ Parameters:
     - Median_Cytoplasm_Texture_Contrast_ER_10_00
     - Median_Cytoplasm_Texture_Contrast_ER_3_00
     - Median_Cytoplasm_Texture_Contrast_ER_5_00
-    - Median_Cytoplasm_Texture_Correlation_ER_3_00
-    - Median_Cytoplasm_Texture_Correlation_ER_5_00
-    - Median_Cytoplasm_Texture_Correlation_Hoechst_10_00
+    - Median_Cytoplasm_Texture_Contrast_Hoechst_10_00
+    - Median_Cytoplasm_Texture_Contrast_Hoechst_3_00
+    - Median_Cytoplasm_Texture_Contrast_Hoechst_5_00
+    - Median_Cytoplasm_Texture_Contrast_Mito_10_00
+    - Median_Cytoplasm_Texture_Contrast_Mito_3_00
+    - Median_Cytoplasm_Texture_Contrast_Mito_5_00
+    - Median_Cytoplasm_Texture_Contrast_Ph_golgi_10_00
+    - Median_Cytoplasm_Texture_Contrast_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_Contrast_Ph_golgi_5_00
+    - Median_Cytoplasm_Texture_Contrast_Syto_10_00
+    - Median_Cytoplasm_Texture_Contrast_Syto_5_00
     - Median_Cytoplasm_Texture_Correlation_Hoechst_5_00
-    - Median_Cytoplasm_Texture_Correlation_Mito_3_00
     - Median_Cytoplasm_Texture_Correlation_Ph_golgi_10_00
-    - Median_Cytoplasm_Texture_DifferenceEntropy_ER_10_00
+    - Median_Cytoplasm_Texture_Correlation_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_Correlation_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_DifferenceEntropy_ER_3_00
     - Median_Cytoplasm_Texture_DifferenceEntropy_ER_5_00
-    - Median_Cytoplasm_Texture_DifferenceEntropy_Hoechst_10_00
-    - Median_Cytoplasm_Texture_DifferenceEntropy_Hoechst_3_00
-    - Median_Cytoplasm_Texture_DifferenceEntropy_Hoechst_5_00
-    - Median_Cytoplasm_Texture_DifferenceVariance_Hoechst_10_00
-    - Median_Cytoplasm_Texture_DifferenceVariance_Hoechst_3_00
-    - Median_Cytoplasm_Texture_DifferenceVariance_Hoechst_5_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Mito_10_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Mito_3_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Mito_5_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Ph_golgi_10_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Ph_golgi_5_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Syto_10_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Syto_3_00
+    - Median_Cytoplasm_Texture_DifferenceEntropy_Syto_5_00
     - Median_Cytoplasm_Texture_DifferenceVariance_Mito_10_00
     - Median_Cytoplasm_Texture_DifferenceVariance_Mito_3_00
     - Median_Cytoplasm_Texture_DifferenceVariance_Mito_5_00
@@ -458,51 +492,43 @@ Parameters:
     - Median_Cytoplasm_Texture_DifferenceVariance_Ph_golgi_3_00
     - Median_Cytoplasm_Texture_DifferenceVariance_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_DifferenceVariance_Syto_10_00
+    - Median_Cytoplasm_Texture_DifferenceVariance_Syto_3_00
     - Median_Cytoplasm_Texture_DifferenceVariance_Syto_5_00
     - Median_Cytoplasm_Texture_Entropy_ER_10_00
     - Median_Cytoplasm_Texture_Entropy_ER_3_00
     - Median_Cytoplasm_Texture_Entropy_ER_5_00
-    - Median_Cytoplasm_Texture_Entropy_Hoechst_10_00
-    - Median_Cytoplasm_Texture_Entropy_Hoechst_3_00
-    - Median_Cytoplasm_Texture_Entropy_Hoechst_5_00
     - Median_Cytoplasm_Texture_Entropy_Mito_10_00
     - Median_Cytoplasm_Texture_Entropy_Mito_3_00
     - Median_Cytoplasm_Texture_Entropy_Mito_5_00
     - Median_Cytoplasm_Texture_Entropy_Ph_golgi_10_00
+    - Median_Cytoplasm_Texture_Entropy_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_Entropy_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_Entropy_Syto_10_00
-    - Median_Cytoplasm_Texture_InfoMeas2_Hoechst_10_00
-    - Median_Cytoplasm_Texture_InfoMeas2_Mito_10_00
+    - Median_Cytoplasm_Texture_Entropy_Syto_3_00
+    - Median_Cytoplasm_Texture_Entropy_Syto_5_00
     - Median_Cytoplasm_Texture_InfoMeas2_Ph_golgi_10_00
-    - Median_Cytoplasm_Texture_InfoMeas2_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_InfoMeas2_Syto_10_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_ER_10_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_ER_3_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_ER_5_00
-    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Hoechst_10_00
-    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Hoechst_3_00
-    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Hoechst_5_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_Mito_10_00
+    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Mito_3_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_Mito_5_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_Ph_golgi_10_00
+    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_InverseDifferenceMoment_Syto_10_00
+    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Syto_3_00
+    - Median_Cytoplasm_Texture_InverseDifferenceMoment_Syto_5_00
     - Median_Cytoplasm_Texture_SumAverage_ER_10_00
     - Median_Cytoplasm_Texture_SumAverage_ER_3_00
     - Median_Cytoplasm_Texture_SumAverage_ER_5_00
-    - Median_Cytoplasm_Texture_SumAverage_Hoechst_10_00
-    - Median_Cytoplasm_Texture_SumAverage_Hoechst_3_00
-    - Median_Cytoplasm_Texture_SumAverage_Hoechst_5_00
     - Median_Cytoplasm_Texture_SumAverage_Mito_10_00
     - Median_Cytoplasm_Texture_SumAverage_Mito_3_00
     - Median_Cytoplasm_Texture_SumAverage_Mito_5_00
     - Median_Cytoplasm_Texture_SumAverage_Syto_10_00
     - Median_Cytoplasm_Texture_SumAverage_Syto_3_00
     - Median_Cytoplasm_Texture_SumAverage_Syto_5_00
-    - Median_Cytoplasm_Texture_SumEntropy_ER_10_00
-    - Median_Cytoplasm_Texture_SumEntropy_ER_3_00
-    - Median_Cytoplasm_Texture_SumEntropy_ER_5_00
-    - Median_Cytoplasm_Texture_SumEntropy_Hoechst_10_00
-    - Median_Cytoplasm_Texture_SumEntropy_Hoechst_3_00
-    - Median_Cytoplasm_Texture_SumEntropy_Hoechst_5_00
     - Median_Cytoplasm_Texture_SumEntropy_Mito_10_00
     - Median_Cytoplasm_Texture_SumEntropy_Mito_3_00
     - Median_Cytoplasm_Texture_SumEntropy_Mito_5_00
@@ -510,25 +536,41 @@ Parameters:
     - Median_Cytoplasm_Texture_SumEntropy_Ph_golgi_3_00
     - Median_Cytoplasm_Texture_SumEntropy_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_SumEntropy_Syto_10_00
+    - Median_Cytoplasm_Texture_SumEntropy_Syto_3_00
+    - Median_Cytoplasm_Texture_SumEntropy_Syto_5_00
+    - Median_Cytoplasm_Texture_SumVariance_Hoechst_10_00
+    - Median_Cytoplasm_Texture_SumVariance_Hoechst_3_00
+    - Median_Cytoplasm_Texture_SumVariance_Hoechst_5_00
+    - Median_Cytoplasm_Texture_SumVariance_Mito_10_00
+    - Median_Cytoplasm_Texture_SumVariance_Mito_3_00
+    - Median_Cytoplasm_Texture_SumVariance_Mito_5_00
+    - Median_Cytoplasm_Texture_SumVariance_Ph_golgi_10_00
+    - Median_Cytoplasm_Texture_SumVariance_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_SumVariance_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_SumVariance_Syto_10_00
     - Median_Cytoplasm_Texture_SumVariance_Syto_3_00
     - Median_Cytoplasm_Texture_SumVariance_Syto_5_00
+    - Median_Cytoplasm_Texture_Variance_Hoechst_10_00
+    - Median_Cytoplasm_Texture_Variance_Hoechst_3_00
+    - Median_Cytoplasm_Texture_Variance_Hoechst_5_00
+    - Median_Cytoplasm_Texture_Variance_Mito_10_00
+    - Median_Cytoplasm_Texture_Variance_Mito_3_00
+    - Median_Cytoplasm_Texture_Variance_Mito_5_00
+    - Median_Cytoplasm_Texture_Variance_Ph_golgi_10_00
+    - Median_Cytoplasm_Texture_Variance_Ph_golgi_3_00
+    - Median_Cytoplasm_Texture_Variance_Ph_golgi_5_00
     - Median_Cytoplasm_Texture_Variance_Syto_10_00
     - Median_Cytoplasm_Texture_Variance_Syto_3_00
     - Median_Cytoplasm_Texture_Variance_Syto_5_00
     - Median_Nuclei_AreaShape_Area
     - Median_Nuclei_AreaShape_MajorAxisLength
     - Median_Nuclei_AreaShape_MaxFeretDiameter
-    - Median_Nuclei_AreaShape_MaximumRadius
     - Median_Nuclei_AreaShape_MeanRadius
-    - Median_Nuclei_AreaShape_MinFeretDiameter
-    - Median_Nuclei_AreaShape_MinorAxisLength
     - Median_Nuclei_AreaShape_Perimeter
     - Median_Nuclei_AreaShape_Solidity
     - Median_Nuclei_Correlation_Correlation_Hoechst_Syto
     - Median_Nuclei_Correlation_Correlation_Mito_Ph_golgi
     - Median_Nuclei_Correlation_Correlation_Mito_Syto
-    - Median_Nuclei_Correlation_K_Hoechst_Ph_golgi
     - Median_Nuclei_Correlation_K_Hoechst_Syto
     - Median_Nuclei_Correlation_K_Mito_Ph_golgi
     - Median_Nuclei_Correlation_K_Ph_golgi_Mito
@@ -538,26 +580,19 @@ Parameters:
     - Median_Nuclei_Correlation_Overlap_Hoechst_Mito
     - Median_Nuclei_Correlation_Overlap_Hoechst_Ph_golgi
     - Median_Nuclei_Correlation_Overlap_Hoechst_Syto
-    - Median_Nuclei_Correlation_Overlap_Mito_Syto
     - Median_Nuclei_Correlation_RWC_Mito_Syto
-    - Median_Nuclei_Correlation_RWC_Syto_Hoechst
     - Median_Nuclei_Correlation_RWC_Syto_Mito
     - Median_Nuclei_Granularity_1_Mito
-    - Median_Nuclei_Granularity_1_Ph_golgi
     - Median_Nuclei_Granularity_1_Syto
     - Median_Nuclei_Granularity_2_Hoechst
     - Median_Nuclei_Granularity_3_Mito
     - Median_Nuclei_Granularity_3_Ph_golgi
     - Median_Nuclei_Granularity_4_Mito
     - Median_Nuclei_Granularity_5_Hoechst
-    - Median_Nuclei_Granularity_5_Mito
     - Median_Nuclei_Intensity_IntegratedIntensity_Ph_golgi
     - Median_Nuclei_Intensity_LowerQuartileIntensity_Hoechst
-    - Median_Nuclei_Intensity_LowerQuartileIntensity_Ph_golgi
     - Median_Nuclei_Intensity_MADIntensity_Hoechst
     - Median_Nuclei_Intensity_MADIntensity_Mito
-    - Median_Nuclei_Intensity_MADIntensity_Ph_golgi
-    - Median_Nuclei_Intensity_MADIntensity_Syto
     - Median_Nuclei_Intensity_MaxIntensityEdge_Hoechst
     - Median_Nuclei_Intensity_MaxIntensityEdge_Mito
     - Median_Nuclei_Intensity_MaxIntensityEdge_Ph_golgi
@@ -567,71 +602,42 @@ Parameters:
     - Median_Nuclei_Intensity_MaxIntensity_Ph_golgi
     - Median_Nuclei_Intensity_MeanIntensityEdge_Hoechst
     - Median_Nuclei_Intensity_MeanIntensityEdge_Mito
-    - Median_Nuclei_Intensity_MeanIntensityEdge_Syto
     - Median_Nuclei_Intensity_MeanIntensity_Hoechst
-    - Median_Nuclei_Intensity_MeanIntensity_Mito
     - Median_Nuclei_Intensity_MeanIntensity_Ph_golgi
     - Median_Nuclei_Intensity_MedianIntensity_Hoechst
-    - Median_Nuclei_Intensity_MedianIntensity_Ph_golgi
     - Median_Nuclei_Intensity_MinIntensityEdge_Hoechst
-    - Median_Nuclei_Intensity_MinIntensityEdge_Mito
     - Median_Nuclei_Intensity_MinIntensity_Hoechst
-    - Median_Nuclei_Intensity_MinIntensity_Mito
     - Median_Nuclei_Intensity_StdIntensityEdge_Hoechst
     - Median_Nuclei_Intensity_StdIntensityEdge_Mito
     - Median_Nuclei_Intensity_StdIntensityEdge_Ph_golgi
     - Median_Nuclei_Intensity_StdIntensityEdge_Syto
-    - Median_Nuclei_Intensity_StdIntensity_Hoechst
     - Median_Nuclei_Intensity_StdIntensity_Mito
     - Median_Nuclei_Intensity_StdIntensity_Ph_golgi
     - Median_Nuclei_Intensity_UpperQuartileIntensity_Hoechst
-    - Median_Nuclei_Intensity_UpperQuartileIntensity_Mito
-    - Median_Nuclei_Intensity_UpperQuartileIntensity_Ph_golgi
-    - Median_Nuclei_RadialDistribution_FracAtD_Mito_3of4
-    - Median_Nuclei_RadialDistribution_FracAtD_Mito_4of4
     - Median_Nuclei_RadialDistribution_FracAtD_Ph_golgi_3of4
-    - Median_Nuclei_RadialDistribution_FracAtD_Ph_golgi_4of4
-    - Median_Nuclei_RadialDistribution_MeanFrac_ER_3of4
-    - Median_Nuclei_RadialDistribution_MeanFrac_ER_4of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Mito_1of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Mito_2of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Mito_3of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Mito_4of4
-    - Median_Nuclei_RadialDistribution_MeanFrac_Ph_golgi_1of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Ph_golgi_2of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Ph_golgi_3of4
     - Median_Nuclei_RadialDistribution_MeanFrac_Ph_golgi_4of4
-    - Median_Nuclei_RadialDistribution_MeanFrac_Syto_3of4
-    - Median_Nuclei_RadialDistribution_MeanFrac_Syto_4of4
-    - Median_Nuclei_RadialDistribution_RadialCV_Mito_3of4
     - Median_Nuclei_RadialDistribution_RadialCV_Mito_4of4
-    - Median_Nuclei_RadialDistribution_RadialCV_Ph_golgi_4of4
-    - Median_Nuclei_RadialDistribution_RadialCV_Syto_2of4
-    - Median_Nuclei_RadialDistribution_RadialCV_Syto_3of4
-    - Median_Nuclei_RadialDistribution_RadialCV_Syto_4of4
     - Median_Nuclei_Texture_AngularSecondMoment_Hoechst_10_00
     - Median_Nuclei_Texture_AngularSecondMoment_Hoechst_3_00
     - Median_Nuclei_Texture_AngularSecondMoment_Hoechst_5_00
     - Median_Nuclei_Texture_AngularSecondMoment_Mito_10_00
     - Median_Nuclei_Texture_AngularSecondMoment_Mito_3_00
     - Median_Nuclei_Texture_AngularSecondMoment_Mito_5_00
-    - Median_Nuclei_Texture_AngularSecondMoment_Ph_golgi_10_00
-    - Median_Nuclei_Texture_AngularSecondMoment_Ph_golgi_3_00
-    - Median_Nuclei_Texture_AngularSecondMoment_Ph_golgi_5_00
-    - Median_Nuclei_Texture_Contrast_Hoechst_10_00
     - Median_Nuclei_Texture_Contrast_Hoechst_3_00
     - Median_Nuclei_Texture_Contrast_Hoechst_5_00
     - Median_Nuclei_Texture_Contrast_Mito_10_00
+    - Median_Nuclei_Texture_Contrast_Mito_3_00
     - Median_Nuclei_Texture_Contrast_Mito_5_00
     - Median_Nuclei_Texture_Contrast_Ph_golgi_10_00
     - Median_Nuclei_Texture_Contrast_Ph_golgi_3_00
     - Median_Nuclei_Texture_Contrast_Ph_golgi_5_00
-    - Median_Nuclei_Texture_Correlation_ER_3_00
-    - Median_Nuclei_Texture_Correlation_ER_5_00
-    - Median_Nuclei_Texture_Correlation_Mito_3_00
-    - Median_Nuclei_Texture_Correlation_Mito_5_00
     - Median_Nuclei_Texture_Correlation_Ph_golgi_3_00
-    - Median_Nuclei_Texture_Correlation_Ph_golgi_5_00
     - Median_Nuclei_Texture_DifferenceEntropy_Hoechst_10_00
     - Median_Nuclei_Texture_DifferenceEntropy_Hoechst_3_00
     - Median_Nuclei_Texture_DifferenceEntropy_Hoechst_5_00
@@ -641,7 +647,6 @@ Parameters:
     - Median_Nuclei_Texture_DifferenceEntropy_Ph_golgi_10_00
     - Median_Nuclei_Texture_DifferenceEntropy_Ph_golgi_3_00
     - Median_Nuclei_Texture_DifferenceEntropy_Ph_golgi_5_00
-    - Median_Nuclei_Texture_DifferenceEntropy_Syto_3_00
     - Median_Nuclei_Texture_DifferenceVariance_Hoechst_10_00
     - Median_Nuclei_Texture_DifferenceVariance_Hoechst_3_00
     - Median_Nuclei_Texture_DifferenceVariance_Hoechst_5_00
@@ -658,13 +663,9 @@ Parameters:
     - Median_Nuclei_Texture_Entropy_Mito_3_00
     - Median_Nuclei_Texture_Entropy_Mito_5_00
     - Median_Nuclei_Texture_Entropy_Ph_golgi_10_00
-    - Median_Nuclei_Texture_Entropy_Ph_golgi_3_00
     - Median_Nuclei_Texture_Entropy_Ph_golgi_5_00
     - Median_Nuclei_Texture_InfoMeas2_Hoechst_10_00
-    - Median_Nuclei_Texture_InfoMeas2_Hoechst_5_00
     - Median_Nuclei_Texture_InfoMeas2_Mito_10_00
-    - Median_Nuclei_Texture_InfoMeas2_Mito_3_00
-    - Median_Nuclei_Texture_InfoMeas2_Mito_5_00
     - Median_Nuclei_Texture_InfoMeas2_Ph_golgi_10_00
     - Median_Nuclei_Texture_InfoMeas2_Ph_golgi_3_00
     - Median_Nuclei_Texture_InfoMeas2_Ph_golgi_5_00
@@ -674,20 +675,12 @@ Parameters:
     - Median_Nuclei_Texture_InverseDifferenceMoment_Mito_10_00
     - Median_Nuclei_Texture_InverseDifferenceMoment_Mito_3_00
     - Median_Nuclei_Texture_InverseDifferenceMoment_Mito_5_00
-    - Median_Nuclei_Texture_InverseDifferenceMoment_Ph_golgi_10_00
-    - Median_Nuclei_Texture_InverseDifferenceMoment_Ph_golgi_3_00
-    - Median_Nuclei_Texture_InverseDifferenceMoment_Ph_golgi_5_00
-    - Median_Nuclei_Texture_InverseDifferenceMoment_Syto_3_00
     - Median_Nuclei_Texture_SumAverage_Hoechst_10_00
     - Median_Nuclei_Texture_SumAverage_Hoechst_3_00
     - Median_Nuclei_Texture_SumAverage_Hoechst_5_00
-    - Median_Nuclei_Texture_SumAverage_Mito_10_00
-    - Median_Nuclei_Texture_SumAverage_Mito_3_00
-    - Median_Nuclei_Texture_SumAverage_Mito_5_00
     - Median_Nuclei_Texture_SumAverage_Ph_golgi_10_00
     - Median_Nuclei_Texture_SumAverage_Ph_golgi_3_00
     - Median_Nuclei_Texture_SumAverage_Ph_golgi_5_00
-    - Median_Nuclei_Texture_SumEntropy_Hoechst_10_00
     - Median_Nuclei_Texture_SumEntropy_Hoechst_3_00
     - Median_Nuclei_Texture_SumEntropy_Hoechst_5_00
     - Median_Nuclei_Texture_SumEntropy_Mito_10_00
@@ -696,17 +689,12 @@ Parameters:
     - Median_Nuclei_Texture_SumEntropy_Ph_golgi_10_00
     - Median_Nuclei_Texture_SumEntropy_Ph_golgi_3_00
     - Median_Nuclei_Texture_SumEntropy_Ph_golgi_5_00
-    - Median_Nuclei_Texture_SumVariance_Hoechst_3_00
-    - Median_Nuclei_Texture_SumVariance_Hoechst_5_00
     - Median_Nuclei_Texture_SumVariance_Mito_10_00
     - Median_Nuclei_Texture_SumVariance_Mito_3_00
     - Median_Nuclei_Texture_SumVariance_Mito_5_00
     - Median_Nuclei_Texture_SumVariance_Ph_golgi_10_00
     - Median_Nuclei_Texture_SumVariance_Ph_golgi_3_00
     - Median_Nuclei_Texture_SumVariance_Ph_golgi_5_00
-    - Median_Nuclei_Texture_Variance_Hoechst_10_00
-    - Median_Nuclei_Texture_Variance_Hoechst_3_00
-    - Median_Nuclei_Texture_Variance_Hoechst_5_00
     - Median_Nuclei_Texture_Variance_Mito_10_00
     - Median_Nuclei_Texture_Variance_Mito_3_00
     - Median_Nuclei_Texture_Variance_Mito_5_00

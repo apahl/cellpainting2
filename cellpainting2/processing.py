@@ -1136,10 +1136,10 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
             mad = 1E-4
         if abs(x - median) <= (mad_factor * mad):
             return 0.0
-        if x >= median:
-            l2f = math.log2(((x - median) / mad))
+        if x > median:
+            l2f = math.log2(((x - median) / mad)) - mad_factor
         else:
-            l2f = -math.log2(((median - x) / mad))
+            l2f = -(math.log2(((median - x) / mad)) - mad_factor)
         return l2f
 
     decimals = {"Activity": 1}
@@ -1164,7 +1164,7 @@ def activity_profile(df, parameters=ACT_PROF_PARAMETERS, act_cutoff=1.58, only_f
             print(result[key].min(), median)
             raise
 
-    result["Activity"] = 100 * ((result[act_parameters].abs() > act_cutoff).sum(axis=1) /
+    result["Activity"] = 100 * ((result[act_parameters].abs() > 0).sum(axis=1) /
                                 len(act_parameters))
 
     if only_final:

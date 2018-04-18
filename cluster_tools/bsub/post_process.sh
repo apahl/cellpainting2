@@ -13,8 +13,7 @@
 
 set -e
 PLATE=${1%/}  # removes trailing slash, if there is one
-PREFIX=/ptmp/apahl/cp
-OUTPUT=$PREFIX/output
+OUTPUT=/ptmp/apahl/cp/output
 FOLDER=$OUTPUT/${PLATE}
 TARRESULTS=${PLATE}_results.tgz
 TAROUTPUT=${PLATE}_output.tgz
@@ -27,7 +26,7 @@ fi
 
 # SAMPLE IMAGES
 echo "sampling images..."
-sample_images $PLATE $PREFIX
+sample_images $PLATE
 
 # AGGREGATE the individual results and calc MEDIANS
 echo ""

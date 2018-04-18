@@ -531,8 +531,8 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
 
     y_labels = []
     fp_list = []
-    max_val = 6                 # using a fixed color range now
-    min_val = -6
+    max_val = 3                 # using a fixed color range now
+    min_val = -3
     ylabel_templ = "{}{}{}"
     ylabel_cs = ""
     ylabel_bs = ""

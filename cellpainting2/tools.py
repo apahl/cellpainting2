@@ -55,6 +55,10 @@ def load_config(conf):
     return config
 
 
+cp_config = load_config("config")
+ACT_PROF_PARAMETERS = cp_config["Parameters"]
+
+
 def is_interactive_ipython():
     try:
         get_ipython()
@@ -117,7 +121,7 @@ def profile_sim_tanimoto(p1, p2):
     matching = 0
     significant = 0
     for idx in range(p_len):
-        if (p1[idx] < 0 and p2[idx] < 0) or (p1[idx] > 0 and p2[idx] > 0):
+        if (p1[idx] < 0.0 and p2[idx] < 0.0) or (p1[idx] > 0.0 and p2[idx] > 0.0):
             matching += 1
         if p1[idx] != 0.0 or p2[idx] != 0.0:
             significant += 1
@@ -125,8 +129,7 @@ def profile_sim_tanimoto(p1, p2):
     return result
 
 
-def profile_sim_tanimoto_weighted(p1, p2, cutoff):
-    neg_cutoff = cutoff * (-1)
+def profile_sim_tanimoto_weighted(p1, p2):
     p_len = len(p1)
     assert p_len == len(p2), "profiles must be of same length!"
     matching = 0.0
@@ -136,9 +139,9 @@ def profile_sim_tanimoto_weighted(p1, p2, cutoff):
         val2 = p2[idx]
         val1_abs = abs(val1)
         val2_abs = abs(val2)
-        if (val1 <= neg_cutoff and val2 <= neg_cutoff) or (val1 >= cutoff and val2 >= cutoff):
+        if (val1 < 0 and val2 < 0) or (val1 > 0 and val2 > 0):
             matching += max(val1_abs, val2_abs) - abs(val1_abs - val2_abs)
-        if val1_abs >= cutoff or val2_abs >= cutoff:
+        if val1_abs > 0 or val2_abs > 0:
             significant += max(val1_abs, val2_abs)
     result = matching / significant
     return result
@@ -335,3 +338,41 @@ def show_available_plates():
     print("Available Plates:")
     for plate_full_name in plates:
         print("  -", plate_full_name)
+
+
+def listify(s, sep=" ", as_int=True):
+    """A helper func for the Jupyter Notebook,
+    which generates a correctly formatted list out of pasted text."""
+    to_number = int if as_int else float
+    result = []
+    if s.startswith("["):
+        s = s[1:]
+    if s.endswith("]"):
+        s = s[:-1]
+    lst = s.split(sep)
+    for el in lst:
+        if len(el) == 0:
+            continue
+        try:
+            el = to_number(el)
+        except ValueError:
+            pass
+        result.append(el)
+    return result
+
+
+def list_from_file(fn, skip=0):
+    """Return a list of strings from reading a file, optionally skipping rows at the beginning."""
+    result = open("/home/pahl/comas/notebooks/projects/painting2/devel/non_discrim_all.txt").read().strip().split("\n")
+    return result[skip:]
+
+
+def get_act_parm(prof, act_prof_parm=ACT_PROF_PARAMETERS):
+    """Get a list of parameters that are active (value diff. from zero)
+    in the given profile."""
+
+    result = []
+    for idx, val in enumerate(prof):
+        if val != 0.0:
+            result.append(act_prof_parm[idx])
+    return result

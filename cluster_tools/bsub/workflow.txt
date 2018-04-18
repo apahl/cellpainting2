@@ -1,0 +1,77 @@
+PROCESSING & POST_PROCESSING
+    $ sbatch ./cp_batch_96.sh <DATE>-<PLATE>
+    $ sbatch --dependency=afterok:XXXXXXX ./post_process.sh <DATE>-<PLATE>
+
+PROFILING
+        Are all COMAS exports on the cluster up to date?
+            - comas_batch_data.tsv
+            - comas_container_data.tsv
+            - comas_container.tsv
+            - comas_smiles_b64.tsv
+            - comas_smiles.tsv
+            - known_act.tsv
+            local:
+            $ cd ~/comas/share
+            $ rsync_cp comas_*.tsv draco:/ptmp/apahl/cp/profiles/resources/
+            $ rsync_cp known_act.tsv draco:/ptmp/apahl/cp/profiles/resources/
+
+        Is the CellPainting module on the cluster up to date?
+            local:
+            $ cd ~/dev/python3
+            $ rsync_cp --exclude='.git' cellpainting2 draco:dev/python3/
+
+
+    cluster:
+    $ sbatch ./prof_res.sh
+    $ sbatch --dependency=afterok: ./find_similar.sh
+    $ sbatch --dependency=afterok: ./finalize_similar.sh
+    $ sbatch --dependency=afterok: ./create_rep.sh
+
+    --------------------------------------------------------------------------------------
+
+NOTEBOOK
+    Download Cell Painting data to notebook
+        $ cd ~/comas/notebooks/projects/painting2
+        $ rsync_cp --exclude 'tmp' --exclude 'plots' draco:/ptmp/apahl/cp/profiles/data ./
+
+    Download Reports
+        $ cd ~/comas/share/cp2
+        $ rsync_cp draco:/ptmp/apahl/cp/profiles/reports ./
+
+    Copy PP data to share
+        $
+
+DATAVIS
+    Copy Compound data to datavis
+        $ cd ~/comas/share
+        $ rsync_cp comas_*.tsv datavis:resources/
+        $ rsync_cp known_act.tsv datavis:resources/
+
+    Copy Cell Painting data to datavis
+
+
+        $ cd ~/comas/notebooks/projects/painting2
+        $ rsync_cp data datavis:profiles/
+
+
+Number of Parameters: 637
+
+Data Set                 Measurements    Compounds
+―――――――――――――――――――――  ――――――――――――――  ―――――――――――
+Full                           16139        13231
+
+↳ References                    4452         3103
+  - Induction >  5%             3466         2520
+  - Induction > 10%             2645         1998
+  - Induction > 20%             1552         1224
+  - Induction > 60%              322          280
+  - Induction > 90%               27           26
+  ↳ Toxic                         78           68
+
+↳ Internal                     11687        10128
+  - Induction >  5%             8895         7952
+  - Induction > 10%             6726         6156
+  - Induction > 20%             3664         3438
+  - Induction > 60%              702          660
+  - Induction > 90%              109          105
+  ↳ Toxic                        159          148
