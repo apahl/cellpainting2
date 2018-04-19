@@ -363,7 +363,7 @@ def listify(s, sep=" ", as_int=True):
 
 def list_from_file(fn, skip=0):
     """Return a list of strings from reading a file, optionally skipping rows at the beginning."""
-    result = open("/home/pahl/comas/notebooks/projects/painting2/devel/non_discrim_all.txt").read().strip().split("\n")
+    result = open(fn).read().strip().split("\n")
     return result[skip:]
 
 

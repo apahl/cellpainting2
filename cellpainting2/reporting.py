@@ -506,6 +506,7 @@ def parm_hist(increased, decreased, hist_cache):
 
 def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
              show=True, colorbar=True, biosim=False, chemsim=False, method="dist_corr",
+             sort_parm=False,
              plot_cache=None):
     # try to load heatmap from cache:
     if plot_cache is not None and op.isfile(plot_cache):
@@ -537,8 +538,20 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
     ylabel_cs = ""
     ylabel_bs = ""
     for ctr, (_, rec) in enumerate(df.iterrows()):
+        if sort_parm:
+            if ctr == 0:
+                compartments = ["Median_Cells", "Median_Cytoplasm", "Median_Nuclei"]
+                parm_list = []
+                for comp in compartments:
+                    parm_comp = [x for x in ACT_PROF_PARAMETERS if x.startswith(comp)]
+                    val_list = [rec[x] for x in parm_comp]
+                    parm_sorted = [x for _, x in sorted(zip(val_list, parm_comp))]
+                    parm_list.extend(parm_sorted)
+        else:
+            parm_list = ACT_PROF_PARAMETERS
         fp = [rec[x] for x in ACT_PROF_PARAMETERS]
-        fp_list.append(fp)
+        fp_view = [rec[x] for x in parm_list]
+        fp_list.append(fp_view)
         if chemsim:
             if ctr == 0:
                 mol = mol_from_smiles(rec.get("Smiles", "*"))

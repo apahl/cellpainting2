@@ -1,6 +1,6 @@
 PROCESSING & POST_PROCESSING
-    $ sbatch ./cp_batch_96.sh <DATE>-<PLATE>
-    $ sbatch --dependency=afterok:XXXXXXX ./post_process.sh <DATE>-<PLATE>
+    _%J-%I
+    $ bsub -J "cp96[1-96]" -W "06:00" -o /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt ./cp_batch_96.sh <PLATE>
 
 PROFILING
         Are all COMAS exports on the cluster up to date?
@@ -22,10 +22,6 @@ PROFILING
 
 
     cluster:
-    $ sbatch ./prof_res.sh
-    $ sbatch --dependency=afterok: ./find_similar.sh
-    $ sbatch --dependency=afterok: ./finalize_similar.sh
-    $ sbatch --dependency=afterok: ./create_rep.sh
 
     --------------------------------------------------------------------------------------
 
