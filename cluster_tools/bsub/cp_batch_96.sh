@@ -3,8 +3,8 @@
 CPPIPE=180419_mpc
 FOLDER=${1%/}  # removes trailing slash, if there is one
 ORIG_DIR=/home/users/axel.pahl/cp
-INPUT=$ORIG_DIR/queue/$FOLDER
-OUTPUT=$ORIG_DIR/output/${FOLDER}
+INPUT=/scratch/apahl/cp/queue/$FOLDER
+OUTPUT=/scratch/apahl/cp/output/$FOLDER
 JOB_LOG=$ORIG_DIR/logs/job_${LSB_JOBID}_${FOLDER}.log
 CELLPROF_DIR=/home/users/axel.pahl/dev/github/CellProfiler
 

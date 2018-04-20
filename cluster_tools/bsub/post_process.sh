@@ -1,15 +1,13 @@
 #!/bin/bash -l
 
-#SBATCH --output=/ptmp/apahl/cp/jobout/postproc_%j.txt
-#SBATCH --error=/ptmp/apahl/cp/jobout/postproc_%j.txt
-
 set -e
 PLATE=${1%/}  # removes trailing slash, if there is one
-OUTPUT=/home/users/axel.pahl/cp/output
+PREFIX=/scratch/apahl/cp
+OUTPUT=$PREFIX/output
 FOLDER=$OUTPUT/${PLATE}
 TARRESULTS=${PLATE}_results.tgz
 TAROUTPUT=${PLATE}_output.tgz
-ORIG_DIR=$(pwd)
+ORIG_DIR=/home/users/axel.pahl/cp
 
 if [[ $PLATE == "" ]]; then
   echo "Missing parameter PLATE."
@@ -18,7 +16,7 @@ fi
 
 # SAMPLE IMAGES
 echo "sampling images..."
-sample_images $PLATE
+sample_images $PLATE $PREFIX
 
 # AGGREGATE the individual results and calc MEDIANS
 echo ""
@@ -32,7 +30,7 @@ source deactivate
 echo ""
 echo "taring results..."
 cd $OUTPUT
-tar czf $TARRESULTS $PLATE/*.txt $PLATE/*.tsv $PLATE/*.cppipe $PLATE/images
+tar czf $TARRESULTS $PLATE/*.txt $PLATE/*.tsv $PLATE/*.cppipe $PLATE/*.xml $PLATE/images
 
 # TAR OUTPUT
 echo ""

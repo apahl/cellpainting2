@@ -1,44 +1,35 @@
 #!/bin/bash -l
 
-#SBATCH --job-name=findsim
-#SBATCH --array=1-20  # ALSO CHANGE BELOW IN TWO POSITIONS !!!
-#SBATCH --workdir=/ptmp/apahl/cp
-#SBATCH --output=/ptmp/apahl/cp/jobout/findsim_%A-%a.txt
-#SBATCH --error=/ptmp/apahl/cp/jobout/findsim_%A-%a.txt
-#SBATCH --partition=short # small
-#SBATCH --ntasks=1
-#SBATCH --ntasks-per-core=1
-# Memory usage of the job [MB]
-#SBATCH --mem=5120
-# #SBATCH --time=24:00:00
+# Number of Array tasks: 20
+# ALSO CHANGE BELOW IN TWO POSITIONS !!!
 
-ORIG_DIR=$(pwd)
+ORIG_DIR=/home/users/axel.pahl/cp
 
 source activate chem
 sleep 5
 
-if [[ $SLURM_ARRAY_TASK_ID == 1 ]]; then
-  echo "`date +"%Y%m%d %H:%M"`  $SLURM_JOB_ID: FindSim started..."
-  echo "`date +"%Y%m%d %H:%M"`  $SLURM_JOB_ID: FindSim started..." >> $ORIG_DIR/job_info.txt
+if [[ $LSB_JOBINDEX == 1 ]]; then
+  echo "`date +"%Y%m%d %H:%M"`  $LSB_JOBID: FindSim started..."
+  echo "`date +"%Y%m%d %H:%M"`  $LSB_JOBID: FindSim started..." >> $ORIG_DIR/job_info.txt
   # remove tmp dir, start fresh
-  if [ -d /ptmp/apahl/cp/profiles/data/tmp ]; then
-    rm -rf /ptmp/apahl/cp/profiles/data/tmp
+  if [ -d /scratch/apahl/cp/profiles/data/tmp ]; then
+    rm -rf /scratch/apahl/cp/profiles/data/tmp
   fi
-  if [ -d /ptmp/apahl/cp/profiles/data/plots ]; then
-    rm -rf /ptmp/apahl/cp/profiles/data/plots
+  if [ -d /scratch/apahl/cp/profiles/data/plots ]; then
+    rm -rf /scratch/apahl/cp/profiles/data/plots
   fi
-  if [ -d /ptmp/apahl/cp/profiles/reports ]; then
-    rm -rf /ptmp/apahl/cp/profiles/reports
+  if [ -d /scratch/apahl/cp/profiles/reports ]; then
+    rm -rf /scratch/apahl/cp/profiles/reports
   fi
-  rm -rf /ptmp/apahl/cp/profiles/data/sim_refs-*.tsv
+  rm -rf /scratch/apahl/cp/profiles/data/sim_refs-*.tsv
 else
   sleep 60
 fi
 
 PLATES=$(get_plates)
-find_similar -p $PLATES -t $SLURM_ARRAY_TASK_ID -n 20
+find_similar -p $PLATES -t $LSB_JOBINDEX -n 20
 source deactivate
 
-if [[ $SLURM_ARRAY_TASK_ID == 20 ]]; then
-  echo "`date +"%Y%m%d %H:%M"`  $SLURM_JOB_ID: FindSim finished." >> $ORIG_DIR/job_info.txt
+if [[ $LSB_JOBINDEX == 20 ]]; then
+  echo "`date +"%Y%m%d %H:%M"`  $LSB_JOBID: FindSim finished." >> $ORIG_DIR/job_info.txt
 fi

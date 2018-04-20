@@ -8,12 +8,12 @@ SRC_DIR=$PREFIX/queue/$PLATE
 DEST_DIR=$PREFIX/output/${PLATE}
 
 if [ -z "$SRC_DIR" ] || [ ! -d "$SRC_DIR" ]; then
-  echo Source Dir $SRC_DIR does not exist
+  echo Source Dir $SRC_DIR does not exist.
   exit 1
 fi
 
 if [ -z $DEST_DIR ] || [ ! -d $DEST_DIR ]; then
-  echo Destination Dir $DEST_DIR does not exist
+  echo Destination Dir $DEST_DIR does not exist.
   exit 1
 fi
 

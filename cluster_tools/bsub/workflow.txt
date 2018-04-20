@@ -1,6 +1,17 @@
 PROCESSING & POST_PROCESSING
-    _%J-%I
-    $ bsub -J "cp96[1-96]" -W "06:00" -o /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt ./cp_batch_96.sh <PLATE>
+
+    $ bsub -J "cp96[1-96]" -W "10:00" -o /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt ./cp_batch_96.sh <PLATE>
+
+    $ bsub -J "postproc" -W "05:00" -o /home/users/axel.pahl/cp/jobout/post_proc_%J.txt -e /home/users/axel.pahl/cp/jobout/post_proc_%J.txt ./post_process.sh <PLATE>
+
+    $ bsub -J "profres" -W "05:00" -o /home/users/axel.pahl/cp/jobout/prof_res_%J.txt -e /home/users/axel.pahl/cp/jobout/prof_res_%J.txt ./prof_res.sh
+
+    $ bsub -J "findsim[1-20]" -W "10:00" -o /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt ./find_similar.sh
+
+    $ bsub -J "finalsim" -W "05:00" -o /home/users/axel.pahl/cp/jobout/final_sim_%J.txt -e /home/users/axel.pahl/cp/jobout/final_sim_%J.txt ./finalize_similar.sh
+
+    $ bsub -J "createrp[1-20]" -W "10:00" -o /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt ./create_rep.sh
+
 
 PROFILING
         Are all COMAS exports on the cluster up to date?
