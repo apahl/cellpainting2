@@ -1,17 +1,33 @@
 PROCESSING & POST_PROCESSING
 
-    $ bsub -J "cp96[1-96]" -W "10:00" -o /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt ./cp_batch_96.sh <PLATE>
+    $ bsub -J "cp96[1-96]" -W "10:00" -R scratch -o /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/cp96_%J-%I.txt ./cp_batch_96.sh <PLATE>
 
-    $ bsub -J "postproc" -W "05:00" -o /home/users/axel.pahl/cp/jobout/post_proc_%J.txt -e /home/users/axel.pahl/cp/jobout/post_proc_%J.txt ./post_process.sh <PLATE>
+    $ bsub -J "postproc" -W "05:00" -R scratch -o /home/users/axel.pahl/cp/jobout/post_proc_%J.txt -e /home/users/axel.pahl/cp/jobout/post_proc_%J.txt ./post_process.sh <PLATE>
 
-    $ bsub -J "profres" -W "05:00" -o /home/users/axel.pahl/cp/jobout/prof_res_%J.txt -e /home/users/axel.pahl/cp/jobout/prof_res_%J.txt ./prof_res.sh
+    $ bsub -J "profres" -W "05:00" -R scratch -o /home/users/axel.pahl/cp/jobout/prof_res_%J.txt -e /home/users/axel.pahl/cp/jobout/prof_res_%J.txt ./prof_res.sh
 
-    $ bsub -J "findsim[1-20]" -W "10:00" -o /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt ./find_similar.sh
+    $ bsub -J "fndsim[1-20]" -w 'done(profres)' -W "10:00" -R scratch -o /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt ./find_similar.sh
 
-    $ bsub -J "finalsim" -W "05:00" -o /home/users/axel.pahl/cp/jobout/final_sim_%J.txt -e /home/users/axel.pahl/cp/jobout/final_sim_%J.txt ./finalize_similar.sh
+    $ bsub -J "finalsim" -w 'done(fndsim*]' -W "10:00" -R scratch -o /home/users/axel.pahl/cp)' -W "05:00" -R scratch -o /home/users/axel.pahl/cp/jobout/final_sim_%J.txt -e /home/users/axel.pahl/cp/jobout/final_sim_%J.txt ./finalize_similar.sh
 
-    $ bsub -J "createrp[1-20]" -W "10:00" -o /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt ./create_rep.sh
+    $ bsub -J "crtrp[1-20]" -w 'done(finalsim)' -W "10:00" -R scratch -o /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt ./create_rep.sh
 
+SCRATCH
+    Open the connection:
+    ssh axel.pahl@transfer.gwdg.de -N -L 4022:transfer-scc.gwdg.de:22
+
+    Transfer Data to Scratch
+    scp -rp -P 4022 {SRC-DIR} axel.pahl@localhost:/scratch/apahl/cp/queue/
+    or
+    rsync -avvH --rsh='ssh -p 4022' {SRC-DIR} axel.pahl@localhost:/scratch/apahl/cp/queue/
+
+    Plates:
+    rsync -avvH --rsh='ssh -p 4022' --exclude='hide' --exclude='repeats' plates axel.pahl@localhost:/scratch/apahl/cp/profiles/
+
+    Transfer Data from Scratch
+    scp -rp -P 4022 axel.pahl@localhost:/scratch/apahl/cp/output/xxx {DST-DIR}
+    or
+    rsync -avvH --rsh='ssh -p 4022' axel.pahl@localhost:/scratch/apahl/cp/output/xxx {DST-DIR}
 
 PROFILING
         Are all COMAS exports on the cluster up to date?
@@ -23,13 +39,13 @@ PROFILING
             - known_act.tsv
             local:
             $ cd ~/comas/share
-            $ rsync_cp comas_*.tsv draco:/ptmp/apahl/cp/profiles/resources/
-            $ rsync_cp known_act.tsv draco:/ptmp/apahl/cp/profiles/resources/
+            $ rsync -avvH comas_*.tsv axel.pahl@localhost:/scratch/apahl/cp/profiles/resources/
+            $ rsync -avvH known_act.tsv axel.pahl@localhost:/scratch/apahl/cp/profiles/resources/
 
         Is the CellPainting module on the cluster up to date?
             local:
             $ cd ~/dev/python3
-            $ rsync_cp --exclude='.git' cellpainting2 draco:dev/python3/
+            $ rsync_cp --exclude='.git' cellpainting2 goetrans:dev/python3/
 
 
     cluster:
@@ -40,6 +56,8 @@ NOTEBOOK
     Download Cell Painting data to notebook
         $ cd ~/comas/notebooks/projects/painting2
         $ rsync_cp --exclude 'tmp' --exclude 'plots' draco:/ptmp/apahl/cp/profiles/data ./
+        $ rsync -avvH --rsh='ssh -p 4022' --exclude="tmp" --exclude="plots" axel.pahl@localhost:/scratch/apahl/cp/profiles/data ./
+
 
     Download Reports
         $ cd ~/comas/share/cp2

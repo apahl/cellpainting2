@@ -30,6 +30,11 @@ source deactivate
 echo ""
 echo "taring results..."
 cd $OUTPUT
+if [ ! -e $PLATE/*.xml ]; then
+  echo "No XML file found."
+  echo "  creating dummy file."
+  echo "dummy" > $PLATE/dummy.xml
+fi
 tar czf $TARRESULTS $PLATE/*.txt $PLATE/*.tsv $PLATE/*.cppipe $PLATE/*.xml $PLATE/images
 
 # TAR OUTPUT

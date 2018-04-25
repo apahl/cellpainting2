@@ -12,9 +12,11 @@ if [[ $LSB_JOBINDEX == 1 ]]; then
   echo "`date +"%Y%m%d %H:%M"`  $LSB_JOBID: CreateRp started..."
   echo "`date +"%Y%m%d %H:%M"`  $LSB_JOBID: CreateRp started..." >> $ORIG_DIR/job_info.txt
   # remove existing report dir, start fresh
-  rm -rf /ptmp/apahl/cp/profiles/reports
+  if [ -d /scratch/apahl/cp/profiles/reports ]; then
+    rm -rf /scratch/apahl/cp/profiles/reports
+  fi
 else
-  sleep 120
+  sleep 180
 fi
 
 PLATES=$(get_plates)

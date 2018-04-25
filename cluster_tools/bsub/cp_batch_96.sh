@@ -15,7 +15,7 @@ if [[ $LSB_JOBINDEX == 1 ]]; then
 fi
 
 source activate cellprof
-sleep 10
+sleep $((LSB_JOBINDEX * 5))
 cellprofiler -c -p $ORIG_DIR/conf/$CPPIPE.cppipe -r -i $INPUT -o $OUTPUT/$(((LSB_JOBINDEX - 1) * 36 + 1)) -L 10 -f $(((LSB_JOBINDEX - 1) * 36 + 1)) -l $((LSB_JOBINDEX * 36)) -t $ORIG_DIR/tmp
 RETVAL=$?
 source deactivate

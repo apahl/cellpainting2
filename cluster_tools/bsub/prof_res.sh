@@ -4,9 +4,13 @@ set -e
 ORIG_DIR=/home/users/axel.pahl/cp
 
 # remove existing data, start fresh
-rm -rf /ptmp/apahl/cp/profiles/data
-mkdir -p /ptmp/apahl/cp/profiles/data
-rm -rf /ptmp/apahl/cp/profiles/reports
+if [ -d /scratch/apahl/cp/profiles/data ]; then
+  rm -rf /scratch/apahl/cp/profiles/data
+fi
+mkdir -p /scratch/apahl/cp/profiles/data
+if [ -d /scratch/apahl/cp/profiles/reports ]; then
+  rm -rf /scratch/apahl/cp/profiles/reports
+fi
 
 source activate chem
 sleep 5

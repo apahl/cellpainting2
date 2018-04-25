@@ -66,7 +66,7 @@ ParameterHelp:
     Texture: MeasureTexture
 
 Cutoffs:
-    InductionCutoff: 2.322
+    InductionCutoff: 2.170
     ActCutoffPerc: 5.0
     ActCutoffPercRef: 5.0
     ActCutoffPercH: 90.0
@@ -76,8 +76,8 @@ Cutoffs:
     LimitCellCountL: 50
     LimitActivityH: 25
     LimitActivityL: 5.0
-    LimitSimilarityH: 85
-    LimitSimilarityL: 70
+    LimitSimilarityH: 80
+    LimitSimilarityL: 65
 
 Options:
     InPlace: True    # whether to modifiy DataFrames inplace or not.

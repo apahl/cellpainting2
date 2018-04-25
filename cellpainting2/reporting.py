@@ -243,9 +243,9 @@ def write_page(page, title="Report", fn="index.html", templ=cprt.HTML_INTRO):
 
 def assign_colors(rec):
     if rec.get("Is_Ref", False):
-        act_cutoff_high = ACT_CUTOFF_PERC_H
-    else:
         act_cutoff_high = ACT_CUTOFF_PERC_REF_H
+    else:
+        act_cutoff_high = ACT_CUTOFF_PERC_H
 
     if "Toxic" in rec:
         if rec["Toxic"]:
@@ -314,11 +314,11 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
     idx = 0
     for _, rec in df.iterrows():
         if rec.get("Is_Ref", False):
-            act_cutoff_low = ACT_CUTOFF_PERC
-            act_cutoff_high = ACT_CUTOFF_PERC_H
-        else:
             act_cutoff_low = ACT_CUTOFF_PERC_REF
             act_cutoff_high = ACT_CUTOFF_PERC_REF_H
+        else:
+            act_cutoff_low = ACT_CUTOFF_PERC
+            act_cutoff_high = ACT_CUTOFF_PERC_H
         idx += 1
         well_id = rec["Well_Id"]
         mol = mol_from_smiles(rec.get("Smiles", "*"))
@@ -506,7 +506,7 @@ def parm_hist(increased, decreased, hist_cache):
 
 def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
              show=True, colorbar=True, biosim=False, chemsim=False, method="dist_corr",
-             sort_parm=False,
+             sort_parm=False, parm_dict=None,
              plot_cache=None):
     # try to load heatmap from cache:
     if plot_cache is not None and op.isfile(plot_cache):
@@ -537,6 +537,7 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
     ylabel_templ = "{}{}{}"
     ylabel_cs = ""
     ylabel_bs = ""
+    id_prop_list = []
     for ctr, (_, rec) in enumerate(df.iterrows()):
         if sort_parm:
             if ctr == 0:
@@ -552,6 +553,7 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
         fp = [rec[x] for x in ACT_PROF_PARAMETERS]
         fp_view = [rec[x] for x in parm_list]
         fp_list.append(fp_view)
+        id_prop_list.append(rec[id_prop])
         if chemsim:
             if ctr == 0:
                 mol = mol_from_smiles(rec.get("Smiles", "*"))
@@ -587,6 +589,10 @@ def heat_mpl(df, id_prop="Compound_Id", cmap="bwr",
         # if m_val < min_val:
         #     min_val = m_val
 
+    if isinstance(parm_dict, dict):
+        parm_dict["Parameter"] = parm_list
+        for i in range(len(id_prop_list)):
+            parm_dict[str(id_prop_list[i])] = fp_list[i].copy()
     # calc the colorbar range
     max_val = max(abs(min_val), max_val)
     # invert y axis:
@@ -700,9 +706,9 @@ def detailed_report(rec, src_dir, ctrl_images):
     templ_dict["Date"] = date
     templ_dict["mol_img"] = mol_img_tag(mol, options='class="cpd_image"')
     if templ_dict["Is_Ref"]:
-        if np.isnan(templ_dict["Trivial_Name"]) or templ_dict["Trivial_Name"] == "":
+        if not isinstance(templ_dict["Trivial_Name"], str) or templ_dict["Trivial_Name"] == "":
             templ_dict["Trivial_Name"] = "&mdash;"
-        if np.isnan(templ_dict["Known_Act"]) or templ_dict["Known_Act"] == "":
+        if not isinstance(templ_dict["Known_Act"], str) or templ_dict["Known_Act"] == "":
             templ_dict["Known_Act"] = "&mdash;"
         t = Template(cprt.DETAILS_REF_ROW)
         templ_dict["Reference"] = t.substitute(templ_dict)
@@ -714,12 +720,16 @@ def detailed_report(rec, src_dir, ctrl_images):
         templ_dict["Img_{}_Cpd".format(ch)] = img_tag(
             im, options='style="width: 250px;"')
         templ_dict["Img_{}_Ctrl".format(ch)] = ctrl_images[ch]
+    if rec.get("Is_Ref", False):
+        act_cutoff_high = ACT_CUTOFF_PERC_REF_H
+    else:
+        act_cutoff_high = ACT_CUTOFF_PERC_H
     if rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
         templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
     elif rec["Activity"] < LIMIT_ACTIVITY_L:
         templ_dict["Ref_Table"] = "Because of low induction (&lt; {}%), no similarity was determined.".format(LIMIT_ACTIVITY_L)
-    elif rec["Activity"] > ACT_CUTOFF_PERC_H:
-        templ_dict["Ref_Table"] = "Because of high induction (&gt; {}%), no similarity was determined.".format(ACT_CUTOFF_PERC_H)
+    elif rec["Activity"] > act_cutoff_high:
+        templ_dict["Ref_Table"] = "Because of high induction (&gt; {}%), no similarity was determined.".format(act_cutoff_high)
     elif rec["OverAct"] > OVERACT_H:
         templ_dict["Ref_Table"] = "Because of high similarity to the overactivation profile (&gt; {}%), no similarity was determined.".format(OVERACT_H)
     else:
