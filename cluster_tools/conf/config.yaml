@@ -71,7 +71,7 @@ Cutoffs:
     ActCutoffPercRef: 5.0
     ActCutoffPercH: 90.0
     ActCutoffPercRefH: 85.0
-    OverActH: 80
+    OverActH: 85
     LimitCellCountH: 75
     LimitCellCountL: 50
     LimitActivityH: 25

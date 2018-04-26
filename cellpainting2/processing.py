@@ -1262,7 +1262,7 @@ def id_filter(df, cpd_ids, id_col="Compound_Id", reset_index=True, sort_by_input
     if reset_index:
         result = result.reset_index()
         result = result.drop("index", axis=1)
-    if sort_by_input and is_pandas(df):
+    if sort_by_input:
         result["_sort"] = pd.Categorical(
             result[id_col], categories=cpd_ids, ordered=True)
         result = result.sort_values("_sort")

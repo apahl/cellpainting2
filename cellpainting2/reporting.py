@@ -339,6 +339,9 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
         # similar references are searched for non-toxic compounds with an activity >= LIMIT_ACTIVITY_L
         if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Activity"] > act_cutoff_high or rec["Toxic"] or rec["OverAct"] > OVERACT_H:
             similars_determined = False
+            if rec["OverAct"] > OVERACT_H:
+                rec["Max_Sim"] = "Overact."
+                rec["Col_Sim"] = cprt.COL_RED
         else:
             similars_determined = True
         assign_colors(rec)

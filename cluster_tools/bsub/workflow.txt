@@ -55,7 +55,6 @@ PROFILING
 NOTEBOOK
     Download Cell Painting data to notebook
         $ cd ~/comas/notebooks/projects/painting2
-
         $ rsync -avvH --rsh='ssh -p 4022' --exclude="tmp" --exclude="plots" axel.pahl@localhost:/scratch/apahl/cp/profiles/data ./
 
 
