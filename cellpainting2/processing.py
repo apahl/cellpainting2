@@ -1254,7 +1254,10 @@ def relevant_parameters(df, ctrls_std_rel_min=0.001,
 def id_filter(df, cpd_ids, id_col="Compound_Id", reset_index=True, sort_by_input=False):
     if not isinstance(cpd_ids, list):
         cpd_ids = [cpd_ids]
-    result = df[df[id_col].isin(cpd_ids)]
+    if is_dask(df):
+        result = df[df[id_col].isin(cpd_ids)].compute()
+    else:
+        result = df[df[id_col].isin(cpd_ids)]
 
     if reset_index:
         result = result.reset_index()

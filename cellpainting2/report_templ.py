@@ -751,8 +751,8 @@ HIGHLIGHT_LEGEND = """
     <td class=noborder>Induction [%]:</td>
     <td bgcolor=§COL_GREEN>&ge; §LIMIT_ACTIVITY_H</td>
     <td bgcolor=§COL_YELLOW>&ge; §LIMIT_ACTIVITY_L</td>
-    <td bgcolor=§COL_RED>&lt; §LIMIT_ACTIVITY_L or <br>&gt; §ACT_CUTOFF_PERC_H (for Research Compounds)
-    <br>(&gt; §ACT_CUTOFF_PERC_REF_H (for References))</td>
+    <td bgcolor=§COL_RED>&lt; §LIMIT_ACTIVITY_L or <br>&gt; §ACT_CUTOFF_PERC_H for Research Compounds
+    <br>(&gt; §ACT_CUTOFF_PERC_REF_H for References)</td>
 </tr>
 <tr>
     <td class=noborder>Highest Similarity<br>to a Reference [%]:</td>

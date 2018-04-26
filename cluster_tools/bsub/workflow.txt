@@ -8,7 +8,7 @@ PROCESSING & POST_PROCESSING
 
     $ bsub -J "fndsim[1-20]" -w 'done(profres)' -W "10:00" -R scratch -o /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/find_similar_%J-%I.txt ./find_similar.sh
 
-    $ bsub -J "finalsim" -w 'done(fndsim*]' -W "10:00" -R scratch -o /home/users/axel.pahl/cp)' -W "05:00" -R scratch -o /home/users/axel.pahl/cp/jobout/final_sim_%J.txt -e /home/users/axel.pahl/cp/jobout/final_sim_%J.txt ./finalize_similar.sh
+    $ bsub -J "finalsim" -w 'done(fndsim*)' -W "05:00" -R scratch -o /home/users/axel.pahl/cp/jobout/final_sim_%J.txt -e /home/users/axel.pahl/cp/jobout/final_sim_%J.txt ./finalize_similar.sh
 
     $ bsub -J "crtrp[1-20]" -w 'done(finalsim)' -W "10:00" -R scratch -o /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt -e /home/users/axel.pahl/cp/jobout/create_rep_%J-%I.txt ./create_rep.sh
 
@@ -39,8 +39,8 @@ PROFILING
             - known_act.tsv
             local:
             $ cd ~/comas/share
-            $ rsync -avvH comas_*.tsv axel.pahl@localhost:/scratch/apahl/cp/profiles/resources/
-            $ rsync -avvH known_act.tsv axel.pahl@localhost:/scratch/apahl/cp/profiles/resources/
+            $ rsync -avvH --rsh='ssh -p 4022' comas_*.tsv axel.pahl@localhost:/scratch/apahl/cp/profiles/resources/
+            $ rsync -avvH --rsh='ssh -p 4022' known_act.tsv axel.pahl@localhost:/scratch/apahl/cp/profiles/resources/
 
         Is the CellPainting module on the cluster up to date?
             local:
@@ -55,13 +55,13 @@ PROFILING
 NOTEBOOK
     Download Cell Painting data to notebook
         $ cd ~/comas/notebooks/projects/painting2
-        $ rsync_cp --exclude 'tmp' --exclude 'plots' draco:/ptmp/apahl/cp/profiles/data ./
+
         $ rsync -avvH --rsh='ssh -p 4022' --exclude="tmp" --exclude="plots" axel.pahl@localhost:/scratch/apahl/cp/profiles/data ./
 
 
     Download Reports
         $ cd ~/comas/share/cp2
-        $ rsync_cp draco:/ptmp/apahl/cp/profiles/reports ./
+        $ rsync -avvH --rsh='ssh -p 4022' axel.pahl@localhost:/scratch/apahl/cp/profiles/reports ./
 
     Copy PP data to share
         $

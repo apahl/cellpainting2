@@ -52,10 +52,10 @@ LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
 PARAMETER_HELP = cp_config["ParameterHelp"]
 
 # get positions of the compartments in the list of parameters
-x = 0
+x = 1
 XTICKS = [x]
 for comp in ["Median_Cytoplasm", "Median_Nuclei"]:
-    for idx, p in enumerate(ACT_PROF_PARAMETERS[x:]):
+    for idx, p in enumerate(ACT_PROF_PARAMETERS[x:], 1):
         if p.startswith(comp):
             XTICKS.append(idx + x)
             x += idx
