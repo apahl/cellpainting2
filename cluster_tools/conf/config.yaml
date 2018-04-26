@@ -69,7 +69,7 @@ Cutoffs:
     InductionCutoff: 2.170
     ActCutoffPerc: 5.0
     ActCutoffPercRef: 5.0
-    ActCutoffPercH: 90.0
+    ActCutoffPercH: 85.0
     ActCutoffPercRefH: 85.0
     OverActH: 85
     LimitCellCountH: 75

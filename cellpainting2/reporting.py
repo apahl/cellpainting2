@@ -41,7 +41,6 @@ ACT_PROF_PARAMETERS = cp_config["Parameters"]
 ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
 ACT_CUTOFF_PERC_H = cp_config["Cutoffs"]["ActCutoffPercH"]
 ACT_CUTOFF_PERC_REF = cp_config["Cutoffs"]["ActCutoffPercRef"]
-ACT_CUTOFF_PERC_REF_H = cp_config["Cutoffs"]["ActCutoffPercRefH"]
 OVERACT_H = cp_config["Cutoffs"]["OverActH"]
 LIMIT_ACTIVITY_H = cp_config["Cutoffs"]["LimitActivityH"]
 LIMIT_ACTIVITY_L = cp_config["Cutoffs"]["LimitActivityL"]
@@ -242,11 +241,7 @@ def write_page(page, title="Report", fn="index.html", templ=cprt.HTML_INTRO):
 
 
 def assign_colors(rec):
-    if rec.get("Is_Ref", False):
-        act_cutoff_high = ACT_CUTOFF_PERC_REF_H
-    else:
-        act_cutoff_high = ACT_CUTOFF_PERC_H
-
+    act_cutoff_high = ACT_CUTOFF_PERC_H
     if "Toxic" in rec:
         if rec["Toxic"]:
             rec["Col_Toxic"] = cprt.COL_RED
@@ -313,12 +308,8 @@ def overview_report(df, cutoff=LIMIT_SIMILARITY_L / 100,
     row_templ = Template(cprt.OVERVIEW_TABLE_ROW)
     idx = 0
     for _, rec in df.iterrows():
-        if rec.get("Is_Ref", False):
-            act_cutoff_low = ACT_CUTOFF_PERC_REF
-            act_cutoff_high = ACT_CUTOFF_PERC_REF_H
-        else:
-            act_cutoff_low = ACT_CUTOFF_PERC
-            act_cutoff_high = ACT_CUTOFF_PERC_H
+        act_cutoff_low = ACT_CUTOFF_PERC
+        act_cutoff_high = ACT_CUTOFF_PERC_H
         idx += 1
         well_id = rec["Well_Id"]
         mol = mol_from_smiles(rec.get("Smiles", "*"))
@@ -723,10 +714,7 @@ def detailed_report(rec, src_dir, ctrl_images):
         templ_dict["Img_{}_Cpd".format(ch)] = img_tag(
             im, options='style="width: 250px;"')
         templ_dict["Img_{}_Ctrl".format(ch)] = ctrl_images[ch]
-    if rec.get("Is_Ref", False):
-        act_cutoff_high = ACT_CUTOFF_PERC_REF_H
-    else:
-        act_cutoff_high = ACT_CUTOFF_PERC_H
+    act_cutoff_high = ACT_CUTOFF_PERC_H
     if rec["Rel_Cell_Count"] < LIMIT_CELL_COUNT_L:
         templ_dict["Ref_Table"] = "Because of compound toxicity, no similarity was determined."
     elif rec["Activity"] < LIMIT_ACTIVITY_L:

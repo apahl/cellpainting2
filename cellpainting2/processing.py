@@ -38,8 +38,6 @@ ACT_PROF_PARAMETERS = cp_config["Parameters"]
 
 ACT_CUTOFF_PERC = cp_config["Cutoffs"]["ActCutoffPerc"]
 ACT_CUTOFF_PERC_H = cp_config["Cutoffs"]["ActCutoffPercH"]
-ACT_CUTOFF_PERC_REF = cp_config["Cutoffs"]["ActCutoffPerc"]
-ACT_CUTOFF_PERC_REF_H = cp_config["Cutoffs"]["ActCutoffPercRefH"]
 OVERACT_H = cp_config["Cutoffs"]["OverActH"]
 
 LIMIT_SIMILARITY_L = cp_config["Cutoffs"]["LimitSimilarityL"]
@@ -960,8 +958,8 @@ def extract_references(df=None):
         load_resource("DATASTORE")
         df = DATASTORE
     df_ref = df[(df["Is_Ref"]) & (~df["Toxic"]) & (df["Pure_Flag"] != "Fail") &
-                (df["Activity"] > ACT_CUTOFF_PERC_REF) &
-                (df["Activity"] < ACT_CUTOFF_PERC_REF_H) &
+                (df["Activity"] > ACT_CUTOFF_PERC) &
+                (df["Activity"] < ACT_CUTOFF_PERC_H) &
                 (df["OverAct"] < OVERACT_H)]
     if is_dask(df_ref):
         df_ref = df_ref.compute()
@@ -1441,10 +1439,7 @@ def update_similar_refs(df=None, inparallel=False, taskid=None, method="dist_cor
     save_needed = False
     npart = 1
     for _, rec in df.iterrows():
-        if rec.get("Is_Ref", False):
-            act_cutoff_high = ACT_CUTOFF_PERC_H
-        else:
-            act_cutoff_high = ACT_CUTOFF_PERC_REF_H
+        act_cutoff_high = ACT_CUTOFF_PERC_H
         # no similarites for low active, very high active or toxic compounds:
         if rec["Activity"] < LIMIT_ACTIVITY_L or rec["Toxic"] or rec["Activity"] > act_cutoff_high or rec["OverAct"] > OVERACT_H:
             continue
