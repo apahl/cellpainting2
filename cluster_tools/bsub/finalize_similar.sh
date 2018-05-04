@@ -4,7 +4,7 @@ set -e
 ORIG_DIR=/home/users/axel.pahl/cp
 
 source activate chem
-sleep 300
+sleep 60
 finalize_similar
 source deactivate
 

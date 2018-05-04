@@ -55,12 +55,12 @@ PROFILING
 NOTEBOOK
     Download Cell Painting data to notebook
         $ cd ~/comas/notebooks/projects/painting2
-        $ rsync -avvH --rsh='ssh -p 4022' --exclude="tmp" --exclude="plots" axel.pahl@localhost:/scratch/apahl/cp/profiles/data ./
+        $ rsync -avH --rsh='ssh -p 4022' --exclude="tmp" --exclude="plots" axel.pahl@localhost:/scratch/apahl/cp/profiles/data ./
 
 
     Download Reports
         $ cd ~/comas/share/cp2
-        $ rsync -avvH --rsh='ssh -p 4022' axel.pahl@localhost:/scratch/apahl/cp/profiles/reports ./
+        $ rsync -avH --rsh='ssh -p 4022' axel.pahl@localhost:/scratch/apahl/cp/profiles/reports ./
 
     Copy PP data to share
         $

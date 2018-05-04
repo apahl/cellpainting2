@@ -23,7 +23,7 @@ if [[ $LSB_JOBINDEX == 1 ]]; then
   fi
   rm -rf /scratch/apahl/cp/profiles/data/sim_refs-*.tsv
 else
-  sleep 60
+  sleep 180
 fi
 
 PLATES=$(get_plates)
