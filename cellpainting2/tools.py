@@ -189,16 +189,33 @@ def chem_sim(mol_fp, query_smi):
     return np.nan
 
 
+# def split_plate_name(full_name, sep="-"):
+#     """Split the full platename into (date, plate, replicate).
+#     Returns a namedtuple or None, if the name spec is not met."""
+#     first_sep = full_name.find(sep)
+#     date = full_name[:first_sep]
+#     if len(date) != 6: return None
+#     last_sep = full_name.rfind(sep)
+#     repl = full_name[last_sep + 1:]
+#     if len(repl) != 1 or repl not in "ABCD": return None
+#     name = full_name[first_sep + 1:last_sep]
+#     if len(name) == 0: return None
+#     Plate = namedtuple("Plate", ["date", "name", "repl"])
+#     result = Plate(date=date, name=name, repl=repl)
+#     return result
+
+
 def split_plate_name(full_name, sep="-"):
-    """Split the full platename into (date, plate).
+    """Split the full platename into (date, plate, replicate).
     Returns a namedtuple or None, if the name spec is not met."""
-    parts = full_name.split(sep=sep, maxsplit=1)
-    if len(parts) == 0:
-        return None  # The full plate name needs to contain at least one '-'.
-    if len(parts[0]) != 6:
-        return None  # The date has to be of format <yymmdd>.
+    first_sep = full_name.find(sep)
+    date = full_name[:first_sep]
+    if len(date) != 6: return None
+    last_sep = full_name.rfind(sep)
+    name = full_name[first_sep + 1:last_sep]
+    if len(name) == 0: return None
     Plate = namedtuple("Plate", ["date", "name"])
-    result = Plate(date=parts[0], name=parts[1])
+    result = Plate(date=date, name=name)
     return result
 
 
@@ -207,7 +224,7 @@ def get_plates_in_dir(dir, exclude=["layout"]):
     Performs a search of the subdirs in the dir and adds plate if it conforms
     to the `split_plate_name` spec.
     Returns a list of full plate name strings."""
-    result = []
+    result = {}
     plate_dir = op.join(dir, "*")
     for dir_name in glob.glob(plate_dir):
         skip = False
@@ -220,8 +237,8 @@ def get_plates_in_dir(dir, exclude=["layout"]):
         plate_name = op.split(dir_name)[1]
         plate = split_plate_name(plate_name)
         if plate is None: continue  # the dir_name does not conform to the spec
-        result.append(plate_name)  # apped the full platename as string
-    return result
+        result.add(plate_name)  # add the full platename as string
+    return sorted(list(result))
 
 
 def format_well(well):

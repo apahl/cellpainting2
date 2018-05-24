@@ -66,16 +66,24 @@ def contained_in_list(s, lst):
 
 def process_plate_for_qc(plate_full_name, structures=True, act_cutoff=1.585):
     plate = cpt.split_plate_name(plate_full_name)
-    src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
-    src_dir = src_templ.format(plate.date, plate.name)
-    #                                                   process as Pandas
-    ds_plate = cpp.read_csv(op.join(src_dir, "Results.tsv")).compute()
+    src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}-{}")
+    plate_list = []
+    for repl in "ABC":
+        print("  - Repl {}".format(repl))
+        src_dir = src_templ.format(plate.date, plate.name, repl)
+        #                                                   process as Pandas
+        ds_plate = cpp.read_csv(op.join(src_dir, "Results.tsv")).compute()
+        ds_plate = ds_plate.join_destination_layout(op.join(src_dir, "*.csv"))
+        ds_plate.position_from_well()  # inplace
+        if contained_in_list(plate.name, IGNORE_SKIPPED):
+            print("* skipping Echo filter step.")
+        else:
+            ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))
+        plate_list.append(ds_plate.data)
+
+    ds_plate = cpp.DataSet()
+    ds_plate.data = pd.concat(plate_list)
     ds_plate = ds_plate.group_on_well()
-    ds_plate.position_from_well()  # inplace
-    if contained_in_list(plate.name, IGNORE_SKIPPED):
-        print("* skipping Echo filter step.")
-    else:
-        ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))
     ds_plate.well_type_from_position()
 
     ds_plate.flag_toxic()
@@ -87,7 +95,7 @@ def process_plate_for_qc(plate_full_name, structures=True, act_cutoff=1.585):
 
     ds_plate = ds_plate.keep_cols(cpp.FINAL_PARAMETERS)  # JUST FOR QC
 
-    ds_plate = ds_plate.join_layout_1536(plate.name, keep_ctrls=True)
+    ds_plate = ds_plate.join_source_layout(plate.name, keep_ctrls=True)
     ds_plate.data["Plate"] = "{}-{}".format(plate.date, plate.name)
 
     ds_plate = ds_plate.join_smiles()

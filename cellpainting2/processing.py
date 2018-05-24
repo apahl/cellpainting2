@@ -296,7 +296,16 @@ class DataSet():
         position_from_well(self.data, well_name=well_name,
                            row_name=row_name, col_name=col_name)
 
-    def join_layout_1536(self, plate, quadrant="", keep_ctrls=False):
+    def join_destination_layout(self, fn):
+        """Transforms the Metadata_Well from the destination layout
+        to the source layout, enabling replicates.
+        Uses an Echo Transfer CSV file (with wildcard)."""
+        assert self.is_pandas, "`data` has to be a Pandas DataFrame."
+        result = DataSet(log=self.log)
+        result.data = join_destination_layout(self.data, fn)
+        return result
+
+    def join_source_layout(self, plate, quadrant="", keep_ctrls=False):
         """Cell Painting is always run in 384er plates.
         COMAS standard screening plates are format 1536.
         With this function, the 1536-to-384 reformatting file
@@ -305,8 +314,8 @@ class DataSet():
         `data` has to be a Pandas DataFrame."""
         assert self.is_pandas, "`data` has to be a Pandas DataFrame."
         result = DataSet(log=self.log)
-        result.data = join_layout_1536(self.data, plate, quadrant,
-                                       keep_ctrls=keep_ctrls)
+        result.data = join_source_layout(self.data, plate, quadrant,
+                                         keep_ctrls=keep_ctrls)
         return result
 
     def numeric_parameters(self):
@@ -774,7 +783,28 @@ def get_cpd_from_container(df):
     return result
 
 
-def join_layout_1536(df, plate, quadrant="", keep_ctrls=False):
+def join_destination_layout(df, fn):
+    assert fn.endswith(".csv"), "Echo Transfer file expected in CSV format."
+    echo_fn = ""
+    for x in glob.glob(fn):
+        if "Transfer" in x:
+            echo_fn = x
+            break
+    assert echo_fn != "", "Echo Transfer file could not be found."
+    df_echo = pd.read_csv(echo_fn, skiprows=8, usecols=["Source Well", "Destination Well"])
+    df_echo["Source Well"] = df_echo["Source Well"].apply(cpt.format_well)
+    df_echo["Destination Well"] = df_echo["Destination Well"].apply(cpt.format_well)
+    result = pd.merge(df, df_echo, left_on="Metadata_Well",
+                      right_on="Destination Well", how="right")
+    drops = ["Metadata_Well", "Destination Well"]
+    renames = {"Source Well": "Metadata_Well"}
+    result = result.drop(drops, axis=1)
+    result = result.rename(columns=renames)
+    print_log(result, "join dest layout")
+    return result
+
+
+def join_source_layout(df, plate, quadrant="", keep_ctrls=False):
     """Cell Painting is always run in 384er plates.
     COMAS standard screening plates are format 1536.
     With this function, the 1536-to-384 reformatting file

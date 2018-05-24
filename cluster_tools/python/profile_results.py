@@ -65,19 +65,19 @@ def profile_plates(plates=None, tasks=None):
                 raise ValueError("Plate {} does not follow the spec.".format(plate_full_name))
             plate_ctr += 1
             cpp.NPARTITIONS = plate_ctr // 8 + 1
-            flush_print("\nProcessing plate {:3d} / {:3d}: {}-{} ...".format(plate_ctr, len(plates), plate.date, plate.name))
+            flush_print("\nProcessing plate {:3d} / {:3d}: {}-{} ({}) ...".format(plate_ctr, len(plates), plate.date, plate.name, plate.repl))
             src_templ = op.join(cp_config["Dirs"]["PlatesDir"], "{}-{}")
             src_dir = src_templ.format(plate.date, plate.name)
             #                                                   process as Pandas
             ds_plate = cpp.read_csv(op.join(src_dir, "Results.tsv")).compute()
             ds_plate = ds_plate.group_on_well()
             ds_plate.position_from_well()  # inplace
-            ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))
+            # ds_plate = ds_plate.remove_skipped_echo_direct_transfer(op.join(src_dir, "*_print.xml"))
             ds_plate.well_type_from_position()
 
             ds_plate.flag_toxic()
             ds_plate = ds_plate.activity_profile(act_cutoff=2.170)
-            ds_plate = ds_plate.join_layout_1536(plate.name)
+            ds_plate = ds_plate.join_source_layout(plate.name)
             ds_plate.data["Plate"] = "{}-{}".format(plate.date, plate.name)
 
             ds_plate = ds_plate.join_smiles()
